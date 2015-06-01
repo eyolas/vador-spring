@@ -2,9 +2,13 @@
   "name": "vador-spring",
   "version": "1.0.0",
   "description": "hal client for spring data rest with hateoas",
-  "main": "index.js",
+  "main": "build/node/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rm -rf build/* && mkdir  -p build/{node,browser}",
+    "build-node": "babel -d build/node src/",
+    "build-browser": "browserify src/index.js --standalone vadorSpring -t babelify > build/browser/vadorSpring.js && browserify src/index.js --standalone vadorSpring -t babelify -t uglifyify > build/browser/vadorSpring.min.js",
+    "build-browser-min": "browserify src/index.js -d -p [minifyify --no-map] --standalone vadorSpring -t babelify  > build/browser/vadorSpring.min.js",
+    "build": "npm run clean && npm run build-node && npm run build-browser && npm run build-browser-min"
   },
   "repository": {
     "type": "git",
@@ -23,5 +27,19 @@
   "bugs": {
     "url": "https://github.com/eyolas/vador-spring/issues"
   },
-  "homepage": "https://github.com/eyolas/vador-spring#readme"
+  "homepage": "https://github.com/eyolas/vador-spring#readme",
+  "dependencies": {
+    "bluebird": "^2.9.27",
+    "debug": "^2.2.0",
+    "lodash.has": "^3.2.1",
+    "lodash.isobject": "^3.0.2",
+    "normalize-url": "^1.2.1",
+    "vador": "^1.0.1"
+  },
+  "devDependencies": {
+    "babel": "^5.1.13",
+    "babelify": "^6.0.2",
+    "browserify": "^9.0.8",
+    "minifyify": "^7.0.0"
+  }
 }
