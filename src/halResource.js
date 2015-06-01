@@ -13,8 +13,7 @@ export class HalResource extends RestResource {
   constructor(baseUrl, resourceName , config = {}) {
     super(baseUrl, resourceName , config);
     this._request = new HalRequest(resourceName, this);
-    this._allRelations = config.rels || {};
-    this._relations = this._allRelations[resourceName] || null;
+    this._relations = this._config.relations || null;
     this._restKeys.push('**links**', '**selfLink**', '**hasLinks**');
 
     //internal interceptors
@@ -29,7 +28,7 @@ export class HalResource extends RestResource {
   }
 
   _createSubInstance(url, resource) {
-    return new HalResource(url, resource, this._config);
+    return new HalResource(url, resource, this._allConfig);
   }
 
   _transformToLink(value, link, rel) {
@@ -49,7 +48,7 @@ export class HalResource extends RestResource {
       value.forEach(val => {
         let tval = this._transformToLinkOne(val, href, rel);
         if (tval !== null) {
-          newValue.push({href: tval});
+          newValue.push(tval);
         }
       });
     } else {
@@ -65,7 +64,8 @@ export class HalResource extends RestResource {
     }
 
     if (value.id) {
-      return normalizeUrl(`${href}/${value.id}`);
+      // remove duplicate slashes
+      return `${href}/${value.id}`.replace(/\/{2,}/, '/');
     } else {
       throw new Error(`For relation ${rel}, the value must have id`);
     }
@@ -75,7 +75,6 @@ export class HalResource extends RestResource {
 
   save(obj) {
     let links = assign({}, this._relations || {});
-    console.log("_relations", this._allRelations, links);
     if (links) {
       Object
         .keys(links)
@@ -86,7 +85,6 @@ export class HalResource extends RestResource {
           }
         });
     }
-    console.log("obj to save", obj);
     return super.save(obj);
   }
 
