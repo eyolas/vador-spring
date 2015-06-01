@@ -1,0 +1,14 @@
+# master only
+site
+.tmp
+test.js
+test2.js
+
+# common
+node_modules
+bower_components
+.DS_Store
+*~
+
+# webstorm files
+.idea

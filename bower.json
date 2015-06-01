@@ -1,0 +1,29 @@
+{
+  "name": "vador-spring",
+  "version": "1.0.0",
+  "homepage": "https://github.com/eyolas/vador-spring",
+  "authors": [
+    "eyolas <dtouzet@gmail.com>"
+  ],
+  "description": "hal client for spring data rest with hateoas",
+  "moduleType": [
+    "amd",
+    "globals"
+  ],
+  "keywords": [
+    "sprind-data-rest",
+    "rest",
+    "hal",
+    "halclient",
+    "hateoas",
+    "hateoasclient"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

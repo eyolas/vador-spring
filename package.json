@@ -1,0 +1,27 @@
+{
+  "name": "vador-spring",
+  "version": "1.0.0",
+  "description": "hal client for spring data rest with hateoas",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eyolas/vador-spring.git"
+  },
+  "keywords": [
+    "sprind-data-rest",
+    "rest",
+    "hal",
+    "halclient",
+    "hateoas",
+    "hateoasclient"
+  ],
+  "author": "Touzet David <dtouzet@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eyolas/vador-spring/issues"
+  },
+  "homepage": "https://github.com/eyolas/vador-spring#readme"
+}
