@@ -8908,7 +8908,7 @@ var Http = (function () {
 })();
 
 exports.Http = Http;
-},{"./utils":44,"superagent-bluebird-promise":63}],39:[function(require,module,exports){
+},{"./utils":44,"superagent-bluebird-promise":45}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -9003,7 +9003,7 @@ var Request = (function () {
 })();
 
 exports.Request = Request;
-},{"./utils":44,"normalize-url":58}],41:[function(require,module,exports){
+},{"./utils":44,"normalize-url":29}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -9040,7 +9040,7 @@ var Response = (function () {
 })();
 
 exports.Response = Response;
-},{"lodash.isobject":57}],42:[function(require,module,exports){
+},{"lodash.isobject":28}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -9125,7 +9125,7 @@ var RestClient = (function () {
 })();
 
 exports.RestClient = RestClient;
-},{"./http":38,"./restResource":43,"lodash.assign":46}],43:[function(require,module,exports){
+},{"./http":38,"./restResource":43,"lodash.assign":11}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -9388,7 +9388,7 @@ var RestResource = (function () {
 })();
 
 exports.RestResource = RestResource;
-},{"../core/baseInterceptors/":34,"./http":38,"./request":40,"./response":41,"./utils":44,"bluebird":45}],44:[function(require,module,exports){
+},{"../core/baseInterceptors/":34,"./http":38,"./request":40,"./response":41,"./utils":44,"bluebird":1}],44:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -9400,42 +9400,6 @@ function isNotEmpty(arr) {
   return arr && Array.isArray(arr) && arr.length;
 }
 },{}],45:[function(require,module,exports){
-arguments[4][1][0].apply(exports,arguments)
-},{"_process":2,"dup":1}],46:[function(require,module,exports){
-arguments[4][11][0].apply(exports,arguments)
-},{"dup":11,"lodash._baseassign":47,"lodash._createassigner":49,"lodash.keys":53}],47:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"dup":12,"lodash._basecopy":48,"lodash.keys":53}],48:[function(require,module,exports){
-arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],49:[function(require,module,exports){
-arguments[4][14][0].apply(exports,arguments)
-},{"dup":14,"lodash._bindcallback":50,"lodash._isiterateecall":51,"lodash.restparam":52}],50:[function(require,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"dup":15}],51:[function(require,module,exports){
-arguments[4][16][0].apply(exports,arguments)
-},{"dup":16}],52:[function(require,module,exports){
-arguments[4][17][0].apply(exports,arguments)
-},{"dup":17}],53:[function(require,module,exports){
-arguments[4][18][0].apply(exports,arguments)
-},{"dup":18,"lodash._getnative":54,"lodash.isarguments":55,"lodash.isarray":56}],54:[function(require,module,exports){
-arguments[4][19][0].apply(exports,arguments)
-},{"dup":19}],55:[function(require,module,exports){
-arguments[4][20][0].apply(exports,arguments)
-},{"dup":20}],56:[function(require,module,exports){
-arguments[4][21][0].apply(exports,arguments)
-},{"dup":21}],57:[function(require,module,exports){
-arguments[4][28][0].apply(exports,arguments)
-},{"dup":28}],58:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"dup":29,"object-assign":59,"prepend-http":60,"punycode":3,"query-string":61,"sort-keys":62,"url":7}],59:[function(require,module,exports){
-arguments[4][30][0].apply(exports,arguments)
-},{"dup":30}],60:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"dup":31}],61:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],62:[function(require,module,exports){
-arguments[4][33][0].apply(exports,arguments)
-},{"dup":33}],63:[function(require,module,exports){
 // From https://gist.github.com/epeli/11209665
 
 var Promise = require("bluebird");
@@ -9511,7 +9475,7 @@ Request.prototype.then = function() {
   return promise.then.apply(promise, arguments);
 };
 
-},{"bluebird":45,"superagent":64}],64:[function(require,module,exports){
+},{"bluebird":1,"superagent":46}],46:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -10636,7 +10600,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":65,"reduce":66}],65:[function(require,module,exports){
+},{"emitter":47,"reduce":48}],47:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -10802,7 +10766,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],66:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -10827,7 +10791,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],67:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -10889,7 +10853,7 @@ var HalRequest = (function (_Request) {
 
 exports.HalRequest = HalRequest;
 
-},{"vador":37}],68:[function(require,module,exports){
+},{"vador":37}],50:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -11068,7 +11032,7 @@ var HalResource = (function (_RestResource) {
 
 exports.HalResource = HalResource;
 
-},{"./halRequest":67,"./interceptors/":73,"bluebird":1,"lodash.assign":11,"normalize-url":29,"vador":37}],69:[function(require,module,exports){
+},{"./halRequest":49,"./interceptors/":55,"bluebird":1,"lodash.assign":11,"normalize-url":29,"vador":37}],51:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -11127,7 +11091,7 @@ var HalRestClient = (function (_RestClient) {
 
 exports.HalRestClient = HalRestClient;
 
-},{"./halResource":68,"lodash.assign":11,"vador":37}],70:[function(require,module,exports){
+},{"./halResource":50,"lodash.assign":11,"vador":37}],52:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -11154,7 +11118,7 @@ var _interceptors = require('./interceptors');
 
 _defaults(exports, _interopRequireWildcard(_interceptors));
 
-},{"./halRequest":67,"./halResource":68,"./halRestClient":69,"./interceptors":73}],71:[function(require,module,exports){
+},{"./halRequest":49,"./halResource":50,"./halRestClient":51,"./interceptors":55}],53:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -11234,7 +11198,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
 
-},{"debug":8,"lodash.has":22,"vador":37}],72:[function(require,module,exports){
+},{"debug":8,"lodash.has":22,"vador":37}],54:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -11324,7 +11288,7 @@ var IdExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.IdExtractorInterceptor = IdExtractorInterceptor;
 
-},{"debug":8,"lodash.has":22,"vador":37}],73:[function(require,module,exports){
+},{"debug":8,"lodash.has":22,"vador":37}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -11351,7 +11315,7 @@ var _populateInterceptor = require('./populateInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_populateInterceptor));
 
-},{"./embeddedExtractorInterceptor":71,"./idExtractorInterceptor":72,"./linkExtractorInterceptor":74,"./populateInterceptor":75}],74:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":53,"./idExtractorInterceptor":54,"./linkExtractorInterceptor":56,"./populateInterceptor":57}],56:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -11482,7 +11446,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
 
-},{"debug":8,"lodash.has":22,"lodash.isobject":28,"vador":37}],75:[function(require,module,exports){
+},{"debug":8,"lodash.has":22,"lodash.isobject":28,"vador":37}],57:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -11600,5 +11564,5 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
 
 exports.PopulateInterceptor = PopulateInterceptor;
 
-},{"bluebird":1,"debug":8,"lodash.has":22,"vador":37}]},{},[70])(70)
+},{"bluebird":1,"debug":8,"lodash.has":22,"vador":37}]},{},[52])(52)
 });
