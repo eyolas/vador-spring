@@ -5,6 +5,8 @@ import Debug from 'debug';
 
 var debug = new Debug('halClient [Interceptor]');
 
+const CACHE_FETCH = '**cache_fetch**';
+
 export class PopulateInterceptor extends ResponseInterceptor {
   response(response) {
     debug('populate interceptor begin');
@@ -35,14 +37,15 @@ export class PopulateInterceptor extends ResponseInterceptor {
   _populateOne(object, request) {
     debug('populate one');
     let links = object['**links**'];
+    object[CACHE_FETCH] = [];
 
     let promises = [];
     request.populates.forEach(pop => {
       var t = pop.split('.');
       var rel = t.shift();
-
-      if (rel && has(links, rel)) {
-        let link = links[rel];
+      let link = links[rel];
+      if (rel && has(links, rel) && !~object[CACHE_FETCH].indexOf(link)) {
+        object[CACHE_FETCH].push(link);
         let url = link.substring(0, link.indexOf(rel));
         let r = request.restResource._createSubInstance(url, rel);
         var promise = r.findAll();
@@ -60,7 +63,12 @@ export class PopulateInterceptor extends ResponseInterceptor {
 
     return Promise
       .all(promises)
-      .then(() => object);
+      .then(() => {
+        if (has(object, CACHE_FETCH)) {
+          delete object[CACHE_FETCH];
+        }
+        return object;
+      });
   }
 
   responseError(error){

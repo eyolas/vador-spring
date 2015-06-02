@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rm -rf build/* && mkdir  -p build/{node,browser}",
     "build-node": "babel -d build/node src/",
-    "build-browser": "browserify src/index.js --standalone vadorSpring -t babelify > build/browser/vadorSpring.js && browserify src/index.js --standalone vadorSpring -t babelify -t uglifyify > build/browser/vadorSpring.min.js",
+    "build-browser": "browserify src/index.js --standalone vadorSpring -t babelify > build/browser/vadorSpring.js ",
     "build-browser-min": "browserify src/index.js -d -p [minifyify --no-map] --standalone vadorSpring -t babelify  > build/browser/vadorSpring.min.js",
     "build": "npm run clean && npm run build-node && npm run build-browser && npm run build-browser-min"
   },
