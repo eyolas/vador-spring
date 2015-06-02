@@ -1,13 +1,29 @@
 import {Request} from 'vador';
+import {IdExtractorInterceptor, LinkExtractorInterceptor, EmbeddedExtractorInterceptor, PopulateInterceptor}
+from './interceptors/';
+
 
 export class HalRequest extends Request {
-  constructor(resourceName, restResource)  {
-    super(resourceName, restResource);
+  constructor(baseUrl, resourceName, restResource, config = {}) {
+    super(baseUrl, resourceName, restResource, config);
     this._populate = [];
+    this._relations = this._config.relations || null;
+    this._restKeys.push('**links**', '**selfLink**', '**hasLinks**');
+
+    //internal interceptors
+    var interceptors = [
+      new EmbeddedExtractorInterceptor(),
+      new LinkExtractorInterceptor(),
+      new IdExtractorInterceptor(),
+      new PopulateInterceptor()
+    ];
+
+    this._interceptors = interceptors.concat(this._interceptors);
   }
 
   populate(...rel) {
     this._populate.push(...rel);
+    return this;
   }
 
   get populates() {
@@ -19,8 +35,42 @@ export class HalRequest extends Request {
     return Array.isArray(pop) && pop.length > 0;
   }
 
-  reset() {
-    super.reset();
-    this._populate = [];
+  _proxifyOne(object, request) {
+    let obj = super._proxifyOne(object);
+
+    let links = object['**links**'];
+
+    if (links) {
+      Object.keys(links)
+        .forEach(rel => {
+          if (!obj.hasOwnProperty(rel) ) {
+            let link = links[rel];
+            let url = link.substring(0, link.indexOf(rel));
+            let r = this.restResource._createSubInstance(url, rel);
+            (function(request) {
+              let value;
+              Object.defineProperty(obj, `${rel}Async`,
+                {
+                  enumerable:false,
+                  get: function() {
+                    if (value !== undefined) {
+                      return Promise.resolve(value);
+                    } else {
+                      return request
+                        .findAll()
+                        .sendRequest()
+                        .spread(res => {
+                          value = res;
+                          return Promise.resolve(value);
+                        });
+                    }
+                  }
+                });
+            })(r);
+          }
+        });
+    }
+
+    return obj;
   }
 }

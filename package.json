@@ -34,7 +34,7 @@
     "lodash.has": "^3.2.1",
     "lodash.isobject": "^3.0.2",
     "normalize-url": "^1.2.1",
-    "vador": "^1.1.0"
+    "vador": "^1.2.0"
   },
   "devDependencies": {
     "babel": "^5.1.13",

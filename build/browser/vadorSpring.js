@@ -3414,196 +3414,6 @@ module.exports = isObject;
 
 },{}],27:[function(require,module,exports){
 'use strict';
-var url = require('url');
-var punycode = require('punycode');
-var queryString = require('query-string');
-var prependHttp = require('prepend-http');
-var sortKeys = require('sort-keys');
-var objectAssign = require('object-assign');
-
-var DEFAULT_PORTS = {
-	'http:': 80,
-	'https:': 443,
-	'ftp:': 21
-};
-
-module.exports = function (str, opts) {
-	opts = objectAssign({
-		normalizeProtocol: true,
-		stripFragment: true
-	}, opts);
-
-	if (typeof str !== 'string') {
-		throw new TypeError('Expected a string');
-	}
-
-	var hasRelativeProtocol = str.indexOf('//') === 0;
-
-	// prepend protocol
-	str = prependHttp(str.trim()).replace(/^\/\//, 'http://');
-
-	var urlObj = url.parse(str);
-
-	// prevent these from being used by `url.format`
-	delete urlObj.host;
-	delete urlObj.query;
-
-	// remove fragment
-	if (opts.stripFragment) {
-		delete urlObj.hash;
-	}
-
-	// remove default port
-	var port = DEFAULT_PORTS[urlObj.protocol];
-	if (Number(urlObj.port) === port) {
-		delete urlObj.port;
-	}
-
-	// remove duplicate slashes
-	urlObj.pathname = urlObj.pathname.replace(/\/{2,}/, '/');
-
-	// resolve relative paths
-	var domain = urlObj.protocol + '//' + urlObj.hostname;
-	var relative = url.resolve(domain, urlObj.pathname);
-	urlObj.pathname = relative.replace(domain, '');
-
-	// IDN to Unicode
-	urlObj.hostname = punycode.toUnicode(urlObj.hostname).toLowerCase();
-
-	// remove `www.`
-	urlObj.hostname = urlObj.hostname.replace(/^www\./, '');
-
-	// remove URL with empty query string
-	if (urlObj.search === '?') {
-		delete urlObj.search;
-	}
-
-	// sort query parameters
-	urlObj.search = queryString.stringify(sortKeys(queryString.parse(urlObj.search)));
-
-	// decode query parameters
-	urlObj.search = decodeURIComponent(urlObj.search);
-
-	// take advantage of many of the Node `url` normalizations
-	str = url.format(urlObj);
-
-	// remove ending `/`
-	str = str.replace(/\/$/, '');
-
-	// restore relative protocol, if applicable
-	if (hasRelativeProtocol && !opts.normalizeProtocol) {
-		str = str.replace(/^http:\/\//, '//');
-	}
-
-	return str;
-};
-
-},{"object-assign":28,"prepend-http":29,"punycode":1,"query-string":30,"sort-keys":31,"url":5}],28:[function(require,module,exports){
-'use strict';
-
-function ToObject(val) {
-	if (val == null) {
-		throw new TypeError('Object.assign cannot be called with null or undefined');
-	}
-
-	return Object(val);
-}
-
-module.exports = Object.assign || function (target, source) {
-	var from;
-	var keys;
-	var to = ToObject(target);
-
-	for (var s = 1; s < arguments.length; s++) {
-		from = arguments[s];
-		keys = Object.keys(Object(from));
-
-		for (var i = 0; i < keys.length; i++) {
-			to[keys[i]] = from[keys[i]];
-		}
-	}
-
-	return to;
-};
-
-},{}],29:[function(require,module,exports){
-'use strict';
-module.exports = function (url) {
-	if (typeof url !== 'string') {
-		throw new TypeError('Expected a string');
-	}
-
-	return url.trim().replace(/^(?!(?:\w+:)?\/\/)/, 'http://');
-};
-
-},{}],30:[function(require,module,exports){
-'use strict';
-
-exports.parse = function (str) {
-	if (typeof str !== 'string') {
-		return {};
-	}
-
-	str = str.trim().replace(/^(\?|#|&)/, '');
-
-	if (!str) {
-		return {};
-	}
-
-	return str.trim().split('&').reduce(function (ret, param) {
-		var parts = param.replace(/\+/g, ' ').split('=');
-		var key = parts[0];
-		var val = parts[1];
-
-		key = decodeURIComponent(key);
-		// missing `=` should be `null`:
-		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
-		val = val === undefined ? null : decodeURIComponent(val);
-
-		if (!ret.hasOwnProperty(key)) {
-			ret[key] = val;
-		} else if (Array.isArray(ret[key])) {
-			ret[key].push(val);
-		} else {
-			ret[key] = [ret[key], val];
-		}
-
-		return ret;
-	}, {});
-};
-
-exports.stringify = function (obj) {
-	return obj ? Object.keys(obj).sort().map(function (key) {
-		var val = obj[key];
-
-		if (Array.isArray(val)) {
-			return val.sort().map(function (val2) {
-				return encodeURIComponent(key) + '=' + encodeURIComponent(val2);
-			}).join('&');
-		}
-
-		return encodeURIComponent(key) + '=' + encodeURIComponent(val);
-	}).join('&') : '';
-};
-
-},{}],31:[function(require,module,exports){
-'use strict';
-module.exports = function (obj, compareFn) {
-	if (typeof obj !== 'object') {
-		throw new TypeError('Expected an object');
-	}
-
-	var ret = {};
-
-	Object.keys(obj).sort(compareFn).forEach(function (el) {
-		ret[el] = obj[el];
-	});
-
-	return ret;
-};
-
-},{}],32:[function(require,module,exports){
-'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -3620,7 +3430,7 @@ _defaults(exports, _interopRequireWildcard(_requestInterceptor));
 var _responseInterceptor = require('./responseInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_responseInterceptor));
-},{"./requestInterceptor":33,"./responseInterceptor":34}],33:[function(require,module,exports){
+},{"./requestInterceptor":28,"./responseInterceptor":29}],28:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3648,7 +3458,7 @@ var RequestInterceptor = (function () {
 })();
 
 exports.RequestInterceptor = RequestInterceptor;
-},{}],34:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3676,7 +3486,7 @@ var ResponseInterceptor = (function () {
 })();
 
 exports.ResponseInterceptor = ResponseInterceptor;
-},{}],35:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3694,7 +3504,7 @@ _defaults(exports, _interopRequireWildcard(_restClient));
 var _coreBaseInterceptors = require('./core/baseInterceptors');
 
 _defaults(exports, _interopRequireWildcard(_coreBaseInterceptors));
-},{"./core/baseInterceptors":32,"./restClient/":37}],36:[function(require,module,exports){
+},{"./core/baseInterceptors":27,"./restClient/":32}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3734,7 +3544,6 @@ var Http = (function () {
       if ((0, _utils.isNotEmpty)(_request.data)) {
         _request.data.forEach(r.send.bind(r));
       }
-
       return r;
     }
   }]);
@@ -3743,7 +3552,7 @@ var Http = (function () {
 })();
 
 exports.Http = Http;
-},{"./utils":42,"superagent-es6-promise":43}],37:[function(require,module,exports){
+},{"./utils":37,"superagent-es6-promise":55}],32:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3769,7 +3578,7 @@ _defaults(exports, _interopRequireWildcard(_response));
 var _restResource = require('./restResource');
 
 _defaults(exports, _interopRequireWildcard(_restResource));
-},{"./request":38,"./response":39,"./restClient":40,"./restResource":41}],38:[function(require,module,exports){
+},{"./request":33,"./response":34,"./restClient":35,"./restResource":36}],33:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3788,18 +3597,32 @@ var _normalizeUrl = require('normalize-url');
 
 var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
 
+var _response = require('./response');
+
+var _coreBaseInterceptors = require('../core/baseInterceptors/');
+
 var Request = (function () {
-  function Request(resourceName, restResource) {
+  function Request(baseUrl, resourceName, restResource) {
+    var config = arguments[3] === undefined ? {} : arguments[3];
+
     _classCallCheck(this, Request);
+
+    this._baseUrl = baseUrl;
+    this._interceptors = config.interceptors || [];
+    this._http = config.http;
+    this._resourceName = resourceName;
+    this._allConfig = config;
+    this._config = config[resourceName] || {};
+    this._restKeys = ['findAll', 'search', 'findOne', 'save', 'toJSON'];
 
     this._url = null;
     this.method = 'get';
     this.responseType = Object;
-    this.resourceName = resourceName;
-    this.headers = {};
+    this.restResource = restResource;
+
+    this.headers = config.defaultHeaders;
     this.query = [];
     this.data = [];
-    this.restResource = restResource;
   }
 
   _createClass(Request, [{
@@ -3811,26 +3634,156 @@ var Request = (function () {
       return (0, _normalizeUrl2['default'])(this._url);
     }
   }, {
-    key: 'reset',
-    value: function reset() {
-      this.headers = [];
-      this.query = [];
-      this.data = [];
+    key: 'addInterceptor',
+    value: function addInterceptor(interceptor) {
+      var onEnd = arguments[1] === undefined ? true : arguments[1];
+
+      if (onEnd) {
+        this._interceptors.push(interceptor);
+      } else {
+        this._interceptors.unshift(interceptor);
+      }
+
+      return this;
     }
   }, {
     key: 'query',
     value: function query(val) {
       this.query.push(val);
+      return this;
     }
   }, {
     key: 'set',
     value: function set(field, val) {
       this.headers[field] = val;
+      return this;
     }
   }, {
     key: 'send',
     value: function send(data) {
       this.data.push(data);
+      return this;
+    }
+  }, {
+    key: '_proxifyOne',
+    value: function _proxifyOne(object) {
+      var _this = this;
+
+      var toJSON = function toJSON(objToConvert) {
+        if (!objToConvert) {
+          return objToConvert;
+        }
+
+        var json = {};
+        Object.keys(objToConvert).forEach(function (key) {
+          if (! ~_this._restKeys.indexOf(key)) {
+            json[key] = objToConvert[key];
+          }
+        });
+        return json;
+      };
+
+      var obj = toJSON(object);
+
+      Object.defineProperty(obj, '**oldState**', { value: toJSON(object) });
+
+      ['findAll', 'search', 'findOne'].forEach(function (method) {
+        obj[method] = function (resource) {
+          for (var _len = arguments.length, other = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+            other[_key - 1] = arguments[_key];
+          }
+
+          var url = _this._baseUrl + _this._resourceName + '/' + obj.id + '/';
+          var r = _this.restResource._createSubInstance(url, resource, _this._allConfig);
+          return r[method].apply(r, other).sendRequest();
+        };
+      });
+
+      obj.save = function () {
+        return _this.restResource.save(obj.toJSON());
+      };
+
+      obj.toJSON = function () {
+        return toJSON(this);
+      };
+
+      return obj;
+    }
+  }, {
+    key: 'proxify',
+    value: function proxify(res) {
+      var _this2 = this;
+
+      var value = res.value;
+      var request = res.request;
+
+      if (Array.isArray(value)) {
+        var _ret = (function () {
+          var values = [];
+          value.forEach(function (val) {
+            return values.push(_this2._proxifyOne(val));
+          });
+          return {
+            v: values
+          };
+        })();
+
+        if (typeof _ret === 'object') return _ret.v;
+      } else {
+        return this._proxifyOne(value);
+      }
+    }
+  }, {
+    key: 'sendRequest',
+    value: function sendRequest() {
+      var _this3 = this;
+
+      var withProxy = arguments[0] === undefined ? true : arguments[0];
+
+      var _request = function _request(request) {
+        return _this3._http.request(request).then(function (result) {
+          var value = result.body;
+          if (!value && result.text) {
+            try {
+              value = JSON.parse(result.text);
+            } catch (e) {
+              value = null;
+            }
+          }
+          return new _response.Response(value, result, request);
+        });
+      };
+
+      var chain = [_request, undefined];
+
+      if ((0, _utils.isNotEmpty)(this._interceptors)) {
+        this._interceptors.forEach(function (interceptor) {
+          if (interceptor instanceof _coreBaseInterceptors.RequestInterceptor) {
+            chain.unshift(interceptor.request.bind(interceptor), interceptor.requestError.bind(interceptor));
+          }
+
+          if (interceptor instanceof _coreBaseInterceptors.ResponseInterceptor) {
+            chain.push(interceptor.response.bind(interceptor), interceptor.responseError.bind(interceptor));
+          }
+        });
+      }
+
+      var promise = Promise.resolve(this);
+      while (chain.length) {
+        var thenFn = chain.shift();
+        var rejectFn = chain.shift();
+
+        promise = promise.then(thenFn, rejectFn);
+      }
+
+      promise = promise.then(function (res) {
+        if (withProxy) {
+          res.value = _this3.proxify(res);
+        }
+        return res;
+      });
+
+      return promise;
     }
   }]);
 
@@ -3838,7 +3791,7 @@ var Request = (function () {
 })();
 
 exports.Request = Request;
-},{"./utils":42,"normalize-url":27}],39:[function(require,module,exports){
+},{"../core/baseInterceptors/":27,"./response":34,"./utils":37,"normalize-url":50}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3875,7 +3828,7 @@ var Response = (function () {
 })();
 
 exports.Response = Response;
-},{"lodash.isobject":26}],40:[function(require,module,exports){
+},{"lodash.isobject":49}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3960,7 +3913,7 @@ var RestClient = (function () {
 })();
 
 exports.RestClient = RestClient;
-},{"./http":36,"./restResource":41,"lodash.assign":9}],41:[function(require,module,exports){
+},{"./http":31,"./restResource":36,"lodash.assign":38}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3971,15 +3924,9 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _request2 = require('./request');
-
-var _response = require('./response');
+var _request = require('./request');
 
 var _http = require('./http');
-
-var _utils = require('./utils');
-
-var _coreBaseInterceptors = require('../core/baseInterceptors/');
 
 var RestResource = (function () {
   function RestResource(baseUrl, resourceName) {
@@ -3988,36 +3935,26 @@ var RestResource = (function () {
     _classCallCheck(this, RestResource);
 
     this._baseUrl = baseUrl + '/';
-    this._defaultHeaders = config.defaultHeaders || [];
-    this._interceptors = config.interceptors || [];
-    this._http = config.http || new _http.Http();
     this._resourceName = resourceName;
-    this._request = new _request2.Request(resourceName, this);
-    this._allConfig = config;
-    this._config = config[resourceName] || {};
-    this._restKeys = ['findAll', 'search', 'findOne', 'save', 'toJSON'];
+    this._config = config;
+
+    this._config.defaultHeaders = config.defaultHeaders || {};
+    this._config.interceptors = config.interceptors || [];
+    this._config.http = config.http || new _http.Http();
   }
 
   _createClass(RestResource, [{
     key: 'constructBaseRequest',
-
-    /****** Request wrapper *****************/
     value: function constructBaseRequest() {
       var method = arguments[0] === undefined ? 'get' : arguments[0];
       var responseType = arguments[1] === undefined ? Array : arguments[1];
       var addUrl = arguments[2] === undefined ? '' : arguments[2];
 
-      this._request.reset();
-      this._request.responseType = responseType;
-      this._request.url = this._baseUrl + this._resourceName + addUrl;
-      this._request.method = method;
-      this._request.headers = this._defaultHeaders;
-      return this;
-    }
-  }, {
-    key: 'interceptors',
-    set: function (interceptor) {
-      this._interceptors = interceptor;
+      var request = new _request.Request(this._baseUrl, this._resourceName, this, this._config);
+      request.responseType = responseType;
+      request.url = this._baseUrl + this._resourceName + addUrl;
+      request.method = method;
+      return request;
     }
   }, {
     key: 'config',
@@ -4025,37 +3962,9 @@ var RestResource = (function () {
       this._config = config;
     }
   }, {
-    key: 'query',
-    value: function query(val) {
-      this._request.query(val);
-      return this;
-    }
-  }, {
-    key: 'set',
-    value: function set(field, val) {
-      this._request.set(field, val);
-      return this;
-    }
-  }, {
-    key: 'send',
-    value: function send(data) {
-      this._request.send(data);
-      return this;
-    }
-  }, {
     key: 'findAll',
-
-    /*********** end wrapper ************/
-
     value: function findAll() {
       return this.constructBaseRequest();
-    }
-  }, {
-    key: 'search',
-    value: function search() {
-      var query = arguments[0] === undefined ? {} : arguments[0];
-
-      return this.findAll().query(query);
     }
   }, {
     key: 'findOne',
@@ -4086,129 +3995,8 @@ var RestResource = (function () {
     }
   }, {
     key: '_createSubInstance',
-    value: function _createSubInstance(url, resource) {
-      return new RestResource(url, resource, this._allConfig);
-    }
-  }, {
-    key: '_proxifyOne',
-    value: function _proxifyOne(object) {
-      var _this = this;
-
-      var toJSON = function toJSON(objToConvert) {
-        if (!objToConvert) {
-          return objToConvert;
-        }
-
-        var json = {};
-        Object.keys(objToConvert).forEach(function (key) {
-          if (! ~_this._restKeys.indexOf(key)) {
-            json[key] = objToConvert[key];
-          }
-        });
-        return json;
-      };
-
-      var obj = toJSON(object);
-
-      Object.defineProperty(obj, '**oldState**', { value: toJSON(object) });
-
-      ['findAll', 'search', 'findOne'].forEach(function (method) {
-        obj[method] = function (resource) {
-          for (var _len = arguments.length, other = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-            other[_key - 1] = arguments[_key];
-          }
-
-          var url = _this._baseUrl + _this._resourceName + '/' + obj.id + '/';
-          var r = _this._createSubInstance(url, resource);
-          return r[method].apply(r, other).sendRequest();
-        };
-      });
-
-      obj.save = function () {
-        return _this.save(obj.toJSON());
-      };
-
-      obj.toJSON = function () {
-        return toJSON(this);
-      };
-
-      return obj;
-    }
-  }, {
-    key: 'proxify',
-    value: function proxify(res) {
-      var _this2 = this;
-
-      var value = res.value;
-      var request = res.request;
-
-      if (Array.isArray(value)) {
-        var _ret = (function () {
-          var values = [];
-          value.forEach(function (val) {
-            return values.push(_this2._proxifyOne(val));
-          });
-          return {
-            v: values
-          };
-        })();
-
-        if (typeof _ret === 'object') return _ret.v;
-      } else {
-        return this._proxifyOne(value);
-      }
-    }
-  }, {
-    key: 'sendRequest',
-    value: function sendRequest() {
-      var _this3 = this;
-
-      var withProxy = arguments[0] === undefined ? true : arguments[0];
-
-      var _request = function _request(request) {
-        return _this3._http.request(request).then(function (result) {
-          var value = result.body;
-          if (!value && result.text) {
-            try {
-              value = JSON.parse(result.text);
-            } catch (e) {
-              value = null;
-            }
-          }
-          return new _response.Response(value, result, request);
-        });
-      };
-
-      var chain = [_request, undefined];
-
-      if ((0, _utils.isNotEmpty)(this._interceptors)) {
-        this._interceptors.forEach(function (interceptor) {
-          if (interceptor instanceof _coreBaseInterceptors.RequestInterceptor) {
-            chain.unshift(interceptor.request.bind(interceptor), interceptor.requestError.bind(interceptor));
-          }
-
-          if (interceptor instanceof _coreBaseInterceptors.ResponseInterceptor) {
-            chain.push(interceptor.response.bind(interceptor), interceptor.responseError.bind(interceptor));
-          }
-        });
-      }
-
-      var promise = Promise.resolve(this._request);
-      while (chain.length) {
-        var thenFn = chain.shift();
-        var rejectFn = chain.shift();
-
-        promise = promise.then(thenFn, rejectFn);
-      }
-
-      promise = promise.then(function (res) {
-        if (withProxy) {
-          res.value = _this3.proxify(res);
-        }
-        return res;
-      });
-
-      return promise;
+    value: function _createSubInstance(url, resource, config) {
+      return new RestResource(url, resource, config);
     }
   }]);
 
@@ -4216,7 +4004,7 @@ var RestResource = (function () {
 })();
 
 exports.RestResource = RestResource;
-},{"../core/baseInterceptors/":32,"./http":36,"./request":38,"./response":39,"./utils":42}],42:[function(require,module,exports){
+},{"./http":31,"./request":33}],37:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4227,7 +4015,221 @@ exports.isNotEmpty = isNotEmpty;
 function isNotEmpty(arr) {
   return arr && Array.isArray(arr) && arr.length;
 }
-},{}],43:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
+arguments[4][9][0].apply(exports,arguments)
+},{"dup":9,"lodash._baseassign":39,"lodash._createassigner":41,"lodash.keys":45}],39:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"dup":10,"lodash._basecopy":40,"lodash.keys":45}],40:[function(require,module,exports){
+arguments[4][11][0].apply(exports,arguments)
+},{"dup":11}],41:[function(require,module,exports){
+arguments[4][12][0].apply(exports,arguments)
+},{"dup":12,"lodash._bindcallback":42,"lodash._isiterateecall":43,"lodash.restparam":44}],42:[function(require,module,exports){
+arguments[4][13][0].apply(exports,arguments)
+},{"dup":13}],43:[function(require,module,exports){
+arguments[4][14][0].apply(exports,arguments)
+},{"dup":14}],44:[function(require,module,exports){
+arguments[4][15][0].apply(exports,arguments)
+},{"dup":15}],45:[function(require,module,exports){
+arguments[4][16][0].apply(exports,arguments)
+},{"dup":16,"lodash._getnative":46,"lodash.isarguments":47,"lodash.isarray":48}],46:[function(require,module,exports){
+arguments[4][17][0].apply(exports,arguments)
+},{"dup":17}],47:[function(require,module,exports){
+arguments[4][18][0].apply(exports,arguments)
+},{"dup":18}],48:[function(require,module,exports){
+arguments[4][19][0].apply(exports,arguments)
+},{"dup":19}],49:[function(require,module,exports){
+arguments[4][26][0].apply(exports,arguments)
+},{"dup":26}],50:[function(require,module,exports){
+'use strict';
+var url = require('url');
+var punycode = require('punycode');
+var queryString = require('query-string');
+var prependHttp = require('prepend-http');
+var sortKeys = require('sort-keys');
+var objectAssign = require('object-assign');
+
+var DEFAULT_PORTS = {
+	'http:': 80,
+	'https:': 443,
+	'ftp:': 21
+};
+
+module.exports = function (str, opts) {
+	opts = objectAssign({
+		normalizeProtocol: true,
+		stripFragment: true
+	}, opts);
+
+	if (typeof str !== 'string') {
+		throw new TypeError('Expected a string');
+	}
+
+	var hasRelativeProtocol = str.indexOf('//') === 0;
+
+	// prepend protocol
+	str = prependHttp(str.trim()).replace(/^\/\//, 'http://');
+
+	var urlObj = url.parse(str);
+
+	// prevent these from being used by `url.format`
+	delete urlObj.host;
+	delete urlObj.query;
+
+	// remove fragment
+	if (opts.stripFragment) {
+		delete urlObj.hash;
+	}
+
+	// remove default port
+	var port = DEFAULT_PORTS[urlObj.protocol];
+	if (Number(urlObj.port) === port) {
+		delete urlObj.port;
+	}
+
+	// remove duplicate slashes
+	urlObj.pathname = urlObj.pathname.replace(/\/{2,}/, '/');
+
+	// resolve relative paths
+	var domain = urlObj.protocol + '//' + urlObj.hostname;
+	var relative = url.resolve(domain, urlObj.pathname);
+	urlObj.pathname = relative.replace(domain, '');
+
+	// IDN to Unicode
+	urlObj.hostname = punycode.toUnicode(urlObj.hostname).toLowerCase();
+
+	// remove `www.`
+	urlObj.hostname = urlObj.hostname.replace(/^www\./, '');
+
+	// remove URL with empty query string
+	if (urlObj.search === '?') {
+		delete urlObj.search;
+	}
+
+	// sort query parameters
+	urlObj.search = queryString.stringify(sortKeys(queryString.parse(urlObj.search)));
+
+	// decode query parameters
+	urlObj.search = decodeURIComponent(urlObj.search);
+
+	// take advantage of many of the Node `url` normalizations
+	str = url.format(urlObj);
+
+	// remove ending `/`
+	str = str.replace(/\/$/, '');
+
+	// restore relative protocol, if applicable
+	if (hasRelativeProtocol && !opts.normalizeProtocol) {
+		str = str.replace(/^http:\/\//, '//');
+	}
+
+	return str;
+};
+
+},{"object-assign":51,"prepend-http":52,"punycode":1,"query-string":53,"sort-keys":54,"url":5}],51:[function(require,module,exports){
+'use strict';
+
+function ToObject(val) {
+	if (val == null) {
+		throw new TypeError('Object.assign cannot be called with null or undefined');
+	}
+
+	return Object(val);
+}
+
+module.exports = Object.assign || function (target, source) {
+	var from;
+	var keys;
+	var to = ToObject(target);
+
+	for (var s = 1; s < arguments.length; s++) {
+		from = arguments[s];
+		keys = Object.keys(Object(from));
+
+		for (var i = 0; i < keys.length; i++) {
+			to[keys[i]] = from[keys[i]];
+		}
+	}
+
+	return to;
+};
+
+},{}],52:[function(require,module,exports){
+'use strict';
+module.exports = function (url) {
+	if (typeof url !== 'string') {
+		throw new TypeError('Expected a string');
+	}
+
+	return url.trim().replace(/^(?!(?:\w+:)?\/\/)/, 'http://');
+};
+
+},{}],53:[function(require,module,exports){
+'use strict';
+
+exports.parse = function (str) {
+	if (typeof str !== 'string') {
+		return {};
+	}
+
+	str = str.trim().replace(/^(\?|#|&)/, '');
+
+	if (!str) {
+		return {};
+	}
+
+	return str.trim().split('&').reduce(function (ret, param) {
+		var parts = param.replace(/\+/g, ' ').split('=');
+		var key = parts[0];
+		var val = parts[1];
+
+		key = decodeURIComponent(key);
+		// missing `=` should be `null`:
+		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
+		val = val === undefined ? null : decodeURIComponent(val);
+
+		if (!ret.hasOwnProperty(key)) {
+			ret[key] = val;
+		} else if (Array.isArray(ret[key])) {
+			ret[key].push(val);
+		} else {
+			ret[key] = [ret[key], val];
+		}
+
+		return ret;
+	}, {});
+};
+
+exports.stringify = function (obj) {
+	return obj ? Object.keys(obj).sort().map(function (key) {
+		var val = obj[key];
+
+		if (Array.isArray(val)) {
+			return val.sort().map(function (val2) {
+				return encodeURIComponent(key) + '=' + encodeURIComponent(val2);
+			}).join('&');
+		}
+
+		return encodeURIComponent(key) + '=' + encodeURIComponent(val);
+	}).join('&') : '';
+};
+
+},{}],54:[function(require,module,exports){
+'use strict';
+module.exports = function (obj, compareFn) {
+	if (typeof obj !== 'object') {
+		throw new TypeError('Expected an object');
+	}
+
+	var ret = {};
+
+	Object.keys(obj).sort(compareFn).forEach(function (el) {
+		ret[el] = obj[el];
+	});
+
+	return ret;
+};
+
+},{}],55:[function(require,module,exports){
 // So you can `var request = require("superagent-es6-promise")`
 var superagent = module.exports = require("superagent");
 var Request = superagent.Request;
@@ -4294,7 +4296,7 @@ Request.prototype.then = function() {
   return promise.then.apply(promise, arguments);
 };
 
-},{"superagent":44}],44:[function(require,module,exports){
+},{"superagent":56}],56:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -5419,7 +5421,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":45,"reduce":46}],45:[function(require,module,exports){
+},{"emitter":57,"reduce":58}],57:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -5585,7 +5587,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],46:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -5610,7 +5612,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],47:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5619,7 +5621,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -5627,12 +5629,23 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 var _vador = require('vador');
 
+var _interceptors = require('./interceptors/');
+
 var HalRequest = (function (_Request) {
-  function HalRequest(resourceName, restResource) {
+  function HalRequest(baseUrl, resourceName, restResource) {
+    var config = arguments[3] === undefined ? {} : arguments[3];
+
     _classCallCheck(this, HalRequest);
 
-    _get(Object.getPrototypeOf(HalRequest.prototype), 'constructor', this).call(this, resourceName, restResource);
+    _get(Object.getPrototypeOf(HalRequest.prototype), 'constructor', this).call(this, baseUrl, resourceName, restResource, config);
     this._populate = [];
+    this._relations = this._config.relations || null;
+    this._restKeys.push('**links**', '**selfLink**', '**hasLinks**');
+
+    //internal interceptors
+    var interceptors = [new _interceptors.EmbeddedExtractorInterceptor(), new _interceptors.LinkExtractorInterceptor(), new _interceptors.IdExtractorInterceptor(), new _interceptors.PopulateInterceptor()];
+
+    this._interceptors = interceptors.concat(this._interceptors);
   }
 
   _inherits(HalRequest, _Request);
@@ -5647,6 +5660,7 @@ var HalRequest = (function (_Request) {
       }
 
       (_populate = this._populate).push.apply(_populate, rel);
+      return this;
     }
   }, {
     key: 'populates',
@@ -5660,10 +5674,41 @@ var HalRequest = (function (_Request) {
       return Array.isArray(pop) && pop.length > 0;
     }
   }, {
-    key: 'reset',
-    value: function reset() {
-      _get(Object.getPrototypeOf(HalRequest.prototype), 'reset', this).call(this);
-      this._populate = [];
+    key: '_proxifyOne',
+    value: function _proxifyOne(object, request) {
+      var _this = this;
+
+      var obj = _get(Object.getPrototypeOf(HalRequest.prototype), '_proxifyOne', this).call(this, object);
+
+      var links = object['**links**'];
+
+      if (links) {
+        Object.keys(links).forEach(function (rel) {
+          if (!obj.hasOwnProperty(rel)) {
+            var link = links[rel];
+            var url = link.substring(0, link.indexOf(rel));
+            var r = _this.restResource._createSubInstance(url, rel);
+            (function (request) {
+              var value = undefined;
+              Object.defineProperty(obj, '' + rel + 'Async', {
+                enumerable: false,
+                get: function get() {
+                  if (value !== undefined) {
+                    return Promise.resolve(value);
+                  } else {
+                    return request.findAll().sendRequest().spread(function (res) {
+                      value = res;
+                      return Promise.resolve(value);
+                    });
+                  }
+                }
+              });
+            })(r);
+          }
+        });
+      }
+
+      return obj;
     }
   }]);
 
@@ -5672,7 +5717,7 @@ var HalRequest = (function (_Request) {
 
 exports.HalRequest = HalRequest;
 
-},{"vador":35}],48:[function(require,module,exports){
+},{"./interceptors/":65,"vador":30}],60:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5681,7 +5726,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -5691,43 +5736,40 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 var _vador = require('vador');
 
-var _normalizeUrl = require('normalize-url');
-
-var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
-
 var _lodashAssign = require('lodash.assign');
 
 var _lodashAssign2 = _interopRequireDefault(_lodashAssign);
 
 var _halRequest = require('./halRequest');
 
-var _interceptors = require('./interceptors/');
-
-var REGEX_LASTPART = /\/([^/]*)\/?$/;
-
 var HalResource = (function (_RestResource) {
-  function HalResource(baseUrl, resourceName) {
-    var config = arguments[2] === undefined ? {} : arguments[2];
-
+  function HalResource() {
     _classCallCheck(this, HalResource);
 
-    _get(Object.getPrototypeOf(HalResource.prototype), 'constructor', this).call(this, baseUrl, resourceName, config);
-    this._request = new _halRequest.HalRequest(resourceName, this);
-    this._relations = this._config.relations || null;
-    this._restKeys.push('**links**', '**selfLink**', '**hasLinks**');
-
-    //internal interceptors
-    var interceptors = [new _interceptors.EmbeddedExtractorInterceptor(), new _interceptors.LinkExtractorInterceptor(), new _interceptors.IdExtractorInterceptor(), new _interceptors.PopulateInterceptor()];
-
-    this._interceptors = interceptors.concat(this._interceptors);
+    if (_RestResource != null) {
+      _RestResource.apply(this, arguments);
+    }
   }
 
   _inherits(HalResource, _RestResource);
 
   _createClass(HalResource, [{
     key: '_createSubInstance',
-    value: function _createSubInstance(url, resource) {
-      return new HalResource(url, resource, this._allConfig);
+    value: function _createSubInstance(url, resource, config) {
+      return new HalResource(url, resource, config);
+    }
+  }, {
+    key: 'constructBaseRequest',
+    value: function constructBaseRequest() {
+      var method = arguments[0] === undefined ? 'get' : arguments[0];
+      var responseType = arguments[1] === undefined ? Array : arguments[1];
+      var addUrl = arguments[2] === undefined ? '' : arguments[2];
+
+      var request = new _halRequest.HalRequest(this._baseUrl, this._resourceName, this, this._config);
+      request.responseType = responseType;
+      request.url = this._baseUrl + this._resourceName + addUrl;
+      request.method = method;
+      return request;
     }
   }, {
     key: '_transformToLink',
@@ -5794,52 +5836,6 @@ var HalResource = (function (_RestResource) {
       }
       return _get(Object.getPrototypeOf(HalResource.prototype), 'save', this).call(this, obj);
     }
-  }, {
-    key: '_proxifyOne',
-    value: function _proxifyOne(object, request) {
-      var _this3 = this;
-
-      var obj = _get(Object.getPrototypeOf(HalResource.prototype), '_proxifyOne', this).call(this, object);
-      var links = object['**links**'];
-      if (links) {
-        Object.keys(links).forEach(function (rel) {
-          if (!obj.hasOwnProperty(rel)) {
-            var link = links[rel];
-            var url = link.substring(0, link.indexOf(rel));
-            var r = _this3._createSubInstance(url, rel);
-            (function (request) {
-              var value = undefined;
-              Object.defineProperty(obj, '' + rel + 'Async', {
-                enumerable: false,
-                get: function get() {
-                  if (value !== undefined) {
-                    return Promise.resolve(value);
-                  } else {
-                    return request.findAll().sendRequest().spread(function (res) {
-                      value = res;
-                      return Promise.resolve(value);
-                    });
-                  }
-                }
-              });
-            })(r);
-          }
-        });
-      }
-      return obj;
-    }
-  }, {
-    key: 'populate',
-    value: function populate() {
-      var _request;
-
-      for (var _len = arguments.length, rel = Array(_len), _key = 0; _key < _len; _key++) {
-        rel[_key] = arguments[_key];
-      }
-
-      (_request = this._request).populate.apply(_request, rel);
-      return this;
-    }
   }]);
 
   return HalResource;
@@ -5847,7 +5843,7 @@ var HalResource = (function (_RestResource) {
 
 exports.HalResource = HalResource;
 
-},{"./halRequest":47,"./interceptors/":53,"lodash.assign":9,"normalize-url":27,"vador":35}],49:[function(require,module,exports){
+},{"./halRequest":59,"lodash.assign":9,"vador":30}],61:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5906,7 +5902,7 @@ var HalRestClient = (function (_RestClient) {
 
 exports.HalRestClient = HalRestClient;
 
-},{"./halResource":48,"lodash.assign":9,"vador":35}],50:[function(require,module,exports){
+},{"./halResource":60,"lodash.assign":9,"vador":30}],62:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5933,7 +5929,7 @@ var _interceptors = require('./interceptors');
 
 _defaults(exports, _interopRequireWildcard(_interceptors));
 
-},{"./halRequest":47,"./halResource":48,"./halRestClient":49,"./interceptors":53}],51:[function(require,module,exports){
+},{"./halRequest":59,"./halResource":60,"./halRestClient":61,"./interceptors":65}],63:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6013,7 +6009,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":35}],52:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"vador":30}],64:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6103,7 +6099,7 @@ var IdExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.IdExtractorInterceptor = IdExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":35}],53:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"vador":30}],65:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6130,7 +6126,7 @@ var _populateInterceptor = require('./populateInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_populateInterceptor));
 
-},{"./embeddedExtractorInterceptor":51,"./idExtractorInterceptor":52,"./linkExtractorInterceptor":54,"./populateInterceptor":55}],54:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":63,"./idExtractorInterceptor":64,"./linkExtractorInterceptor":66,"./populateInterceptor":67}],66:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6261,7 +6257,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"lodash.isobject":26,"vador":35}],55:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"lodash.isobject":26,"vador":30}],67:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6310,8 +6306,8 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
       var value = _response.value;
       var request = _response.request;
 
-      if (!_response.hasValue()) {
-        debug('id extractor end (do nothing)');
+      if (!_response.hasValue() || !request.hasPopulate()) {
+        debug('Populate extractor end (do nothing)');
         return _response;
       }
 
@@ -6375,5 +6371,5 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
 
 exports.PopulateInterceptor = PopulateInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":35}]},{},[50])(50)
+},{"debug":6,"lodash.has":20,"vador":30}]},{},[62])(62)
 });

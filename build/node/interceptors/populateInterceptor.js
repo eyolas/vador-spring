@@ -46,8 +46,8 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
       var value = _response.value;
       var request = _response.request;
 
-      if (!_response.hasValue()) {
-        debug('id extractor end (do nothing)');
+      if (!_response.hasValue() || !request.hasPopulate()) {
+        debug('Populate extractor end (do nothing)');
         return _response;
       }
 

@@ -11,8 +11,8 @@ export class PopulateInterceptor extends ResponseInterceptor {
     debug('populate interceptor begin');
     let {value, request} = response;
 
-    if (!response.hasValue()) {
-      debug('id extractor end (do nothing)');
+    if (!response.hasValue() || !request.hasPopulate()) {
+      debug('Populate extractor end (do nothing)');
       return response;
     }
 
@@ -43,7 +43,9 @@ export class PopulateInterceptor extends ResponseInterceptor {
       var t = pop.split('.');
       var rel = t.shift();
       let link = links[rel];
-      if (rel && has(links, rel) && !~object[CACHE_FETCH].indexOf(link)) {
+      // if (rel && has(links, rel) && !~object[CACHE_FETCH].indexOf(link)) {
+      if (rel && has(links, rel)) {
+
         object[CACHE_FETCH].push(link);
         let url = link.substring(0, link.indexOf(rel));
         let r = request.restResource._createSubInstance(url, rel);
@@ -54,7 +56,7 @@ export class PopulateInterceptor extends ResponseInterceptor {
         promise = promise
           .sendRequest()
           .then(res => {
-            object[rel] = res[0];
+            object[rel] = res.value;
           });
         promises.push(promise);
       }
