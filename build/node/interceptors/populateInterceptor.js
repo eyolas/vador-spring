@@ -80,7 +80,6 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
       request.populates.forEach(function (pop) {
         var t = pop.split('.');
         var rel = t.shift();
-        console.log(t, rel);
         var link = links[rel];
         if (rel && (0, _lodashHas2['default'])(links, rel) && ! ~object[CACHE_FETCH].indexOf(link)) {
           object[CACHE_FETCH].push(link);
@@ -101,7 +100,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
         if ((0, _lodashHas2['default'])(object, CACHE_FETCH)) {
           delete object[CACHE_FETCH];
         }
-        object;
+        return object;
       });
     }
   }, {
