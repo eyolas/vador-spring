@@ -4,7 +4,7 @@
   "main": "build/browser/vadorSpring.js",
   "homepage": "https://github.com/eyolas/vador-spring",
   "authors": [
-    "Touzet David <dtouzet@gmail.com>"
+    "David Touzet <dtouzet@gmail.com>"
   ],
   "description": "hal client for spring data rest with hateoas",
   "moduleType": [
