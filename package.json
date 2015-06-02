@@ -1,6 +1,6 @@
 {
   "name": "vador-spring",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "hal client for spring data rest with hateoas",
   "main": "build/node/index.js",
   "scripts": {
@@ -35,7 +35,7 @@
     "lodash.has": "^3.2.1",
     "lodash.isobject": "^3.0.2",
     "normalize-url": "^1.2.1",
-    "vador": "^1.0.1"
+    "vador": "^1.0.3"
   },
   "devDependencies": {
     "babel": "^5.1.13",
