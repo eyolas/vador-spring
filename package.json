@@ -29,13 +29,12 @@
   },
   "homepage": "https://github.com/eyolas/vador-spring#readme",
   "dependencies": {
-    "bluebird": "^2.9.27",
     "debug": "^2.2.0",
     "lodash.assign": "^3.2.0",
     "lodash.has": "^3.2.1",
     "lodash.isobject": "^3.0.2",
     "normalize-url": "^1.2.1",
-    "vador": "^1.0.3"
+    "vador": "^1.1.0"
   },
   "devDependencies": {
     "babel": "^5.1.13",

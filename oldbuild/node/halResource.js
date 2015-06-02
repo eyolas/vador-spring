@@ -28,6 +28,10 @@ var _halRequest = require('./halRequest');
 
 var _interceptors = require('./interceptors/');
 
+var _bluebird = require('bluebird');
+
+var _bluebird2 = _interopRequireDefault(_bluebird);
+
 var REGEX_LASTPART = /\/([^/]*)\/?$/;
 
 var HalResource = (function (_RestResource) {
@@ -138,11 +142,11 @@ var HalResource = (function (_RestResource) {
                 enumerable: false,
                 get: function get() {
                   if (value !== undefined) {
-                    return Promise.resolve(value);
+                    return _bluebird2['default'].resolve(value);
                   } else {
                     return request.findAll().sendRequest().spread(function (res) {
                       value = res;
-                      return Promise.resolve(value);
+                      return _bluebird2['default'].resolve(value);
                     });
                   }
                 }

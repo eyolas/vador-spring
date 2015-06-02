@@ -24,89 +24,65 @@ var _debug2 = _interopRequireDefault(_debug);
 
 var debug = new _debug2['default']('halClient [Interceptor]');
 
-var CACHE_FETCH = '**cache_fetch**';
+var REGEX_LASTPART = /\/([^/]*)\/?$/;
 
-var PopulateInterceptor = (function (_ResponseInterceptor) {
-  function PopulateInterceptor() {
-    _classCallCheck(this, PopulateInterceptor);
+var IdExtractorInterceptor = (function (_ResponseInterceptor) {
+  function IdExtractorInterceptor() {
+    _classCallCheck(this, IdExtractorInterceptor);
 
     if (_ResponseInterceptor != null) {
       _ResponseInterceptor.apply(this, arguments);
     }
   }
 
-  _inherits(PopulateInterceptor, _ResponseInterceptor);
+  _inherits(IdExtractorInterceptor, _ResponseInterceptor);
 
-  _createClass(PopulateInterceptor, [{
+  _createClass(IdExtractorInterceptor, [{
     key: 'response',
     value: function response(_response) {
       var _this = this;
 
-      debug('populate interceptor begin');
+      debug('id extractor start');
       var value = _response.value;
-      var request = _response.request;
 
       if (!_response.hasValue()) {
         debug('id extractor end (do nothing)');
         return _response;
       }
 
-      var promises = [];
       if (Array.isArray(value)) {
         value.forEach(function (val) {
-          promises.push(_this._populateOne(val, request));
+          return _this._extractId(val);
         });
       } else {
-        promises.push(this._populateOne(value, request));
+        this._extractId(value);
       }
 
-      return Promise.all(promises).then(function () {
-        debug('populate interceptor end');
-        return _response;
-      });
+      debug('id extractor end');
+      return _response;
     }
   }, {
-    key: '_populateOne',
-    value: function _populateOne(object, request) {
-      debug('populate one');
-      var links = object['**links**'];
-      object[CACHE_FETCH] = [];
-
-      var promises = [];
-      request.populates.forEach(function (pop) {
-        var t = pop.split('.');
-        var rel = t.shift();
-        var link = links[rel];
-        if (rel && (0, _lodashHas2['default'])(links, rel) && ! ~object[CACHE_FETCH].indexOf(link)) {
-          object[CACHE_FETCH].push(link);
-          var url = link.substring(0, link.indexOf(rel));
-          var r = request.restResource._createSubInstance(url, rel);
-          var promise = r.findAll();
-          if (t && t.length) {
-            promise.populate(t.join('.'));
+    key: '_extractId',
+    value: function _extractId(object) {
+      if (!object.id) {
+        var link = object['**selfLink**'];
+        if (link) {
+          var matches = link.match(REGEX_LASTPART);
+          if (matches.length > 1) {
+            object.id = matches[1];
           }
-          promise = promise.sendRequest().then(function (res) {
-            object[rel] = res[0];
-          });
-          promises.push(promise);
         }
-      });
-
-      return Promise.all(promises).then(function () {
-        if ((0, _lodashHas2['default'])(object, CACHE_FETCH)) {
-          delete object[CACHE_FETCH];
-        }
-        return object;
-      });
+      }
     }
   }, {
     key: 'responseError',
     value: function responseError(error) {
-      console.error('populate extractor responseError', error);
+      console.error('id extractor responseError');
+      console.error(error.stack);
     }
   }]);
 
-  return PopulateInterceptor;
+  return IdExtractorInterceptor;
 })(_vador.ResponseInterceptor);
 
-exports.PopulateInterceptor = PopulateInterceptor;
+exports.IdExtractorInterceptor = IdExtractorInterceptor;

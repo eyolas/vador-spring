@@ -18,6 +18,10 @@ var _lodashHas = require('lodash.has');
 
 var _lodashHas2 = _interopRequireDefault(_lodashHas);
 
+var _bluebird = require('bluebird');
+
+var _bluebird2 = _interopRequireDefault(_bluebird);
+
 var _debug = require('debug');
 
 var _debug2 = _interopRequireDefault(_debug);
@@ -60,7 +64,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
         promises.push(this._populateOne(value, request));
       }
 
-      return Promise.all(promises).then(function () {
+      return _bluebird2['default'].all(promises).then(function () {
         debug('populate interceptor end');
         return _response;
       });
@@ -92,7 +96,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
         }
       });
 
-      return Promise.all(promises).then(function () {
+      return _bluebird2['default'].all(promises).then(function () {
         if ((0, _lodashHas2['default'])(object, CACHE_FETCH)) {
           delete object[CACHE_FETCH];
         }

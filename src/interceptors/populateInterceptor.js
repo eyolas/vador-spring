@@ -1,6 +1,5 @@
 import {ResponseInterceptor} from 'vador';
 import has from 'lodash.has';
-import Promise from 'bluebird';
 import Debug from 'debug';
 
 var debug = new Debug('halClient [Interceptor]');

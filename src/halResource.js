@@ -4,7 +4,6 @@ import assign from 'lodash.assign';
 import {HalRequest} from './halRequest';
 import {IdExtractorInterceptor, LinkExtractorInterceptor, EmbeddedExtractorInterceptor, PopulateInterceptor}
 from './interceptors/';
-import Promise from 'bluebird';
 
 
 const REGEX_LASTPART = /\/([^/]*)\/?$/;
