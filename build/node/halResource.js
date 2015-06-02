@@ -45,9 +45,9 @@ var HalResource = (function (_RestResource) {
       var responseType = arguments[1] === undefined ? Array : arguments[1];
       var addUrl = arguments[2] === undefined ? '' : arguments[2];
 
-      var request = new _halRequest.HalRequest(this._baseUrl, this._resourceName, this, this._config);
+      var request = new _halRequest.HalRequest(this._baseUrl, this.resourceName, this, this._config);
       request.responseType = responseType;
-      request.url = this._baseUrl + this._resourceName + addUrl;
+      request.url = this._baseUrl + this.resourceName + addUrl;
       request.method = method;
       return request;
     }

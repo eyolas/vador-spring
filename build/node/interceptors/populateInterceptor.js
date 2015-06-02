@@ -77,7 +77,9 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
         var t = pop.split('.');
         var rel = t.shift();
         var link = links[rel];
-        if (rel && (0, _lodashHas2['default'])(links, rel) && ! ~object[CACHE_FETCH].indexOf(link)) {
+        // if (rel && has(links, rel) && !~object[CACHE_FETCH].indexOf(link)) {
+        if (rel && (0, _lodashHas2['default'])(links, rel)) {
+
           object[CACHE_FETCH].push(link);
           var url = link.substring(0, link.indexOf(rel));
           var r = request.restResource._createSubInstance(url, rel);
@@ -86,7 +88,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
             promise.populate(t.join('.'));
           }
           promise = promise.sendRequest().then(function (res) {
-            object[rel] = res[0];
+            object[rel] = res.value;
           });
           promises.push(promise);
         }

@@ -3414,6 +3414,196 @@ module.exports = isObject;
 
 },{}],27:[function(require,module,exports){
 'use strict';
+var url = require('url');
+var punycode = require('punycode');
+var queryString = require('query-string');
+var prependHttp = require('prepend-http');
+var sortKeys = require('sort-keys');
+var objectAssign = require('object-assign');
+
+var DEFAULT_PORTS = {
+	'http:': 80,
+	'https:': 443,
+	'ftp:': 21
+};
+
+module.exports = function (str, opts) {
+	opts = objectAssign({
+		normalizeProtocol: true,
+		stripFragment: true
+	}, opts);
+
+	if (typeof str !== 'string') {
+		throw new TypeError('Expected a string');
+	}
+
+	var hasRelativeProtocol = str.indexOf('//') === 0;
+
+	// prepend protocol
+	str = prependHttp(str.trim()).replace(/^\/\//, 'http://');
+
+	var urlObj = url.parse(str);
+
+	// prevent these from being used by `url.format`
+	delete urlObj.host;
+	delete urlObj.query;
+
+	// remove fragment
+	if (opts.stripFragment) {
+		delete urlObj.hash;
+	}
+
+	// remove default port
+	var port = DEFAULT_PORTS[urlObj.protocol];
+	if (Number(urlObj.port) === port) {
+		delete urlObj.port;
+	}
+
+	// remove duplicate slashes
+	urlObj.pathname = urlObj.pathname.replace(/\/{2,}/, '/');
+
+	// resolve relative paths
+	var domain = urlObj.protocol + '//' + urlObj.hostname;
+	var relative = url.resolve(domain, urlObj.pathname);
+	urlObj.pathname = relative.replace(domain, '');
+
+	// IDN to Unicode
+	urlObj.hostname = punycode.toUnicode(urlObj.hostname).toLowerCase();
+
+	// remove `www.`
+	urlObj.hostname = urlObj.hostname.replace(/^www\./, '');
+
+	// remove URL with empty query string
+	if (urlObj.search === '?') {
+		delete urlObj.search;
+	}
+
+	// sort query parameters
+	urlObj.search = queryString.stringify(sortKeys(queryString.parse(urlObj.search)));
+
+	// decode query parameters
+	urlObj.search = decodeURIComponent(urlObj.search);
+
+	// take advantage of many of the Node `url` normalizations
+	str = url.format(urlObj);
+
+	// remove ending `/`
+	str = str.replace(/\/$/, '');
+
+	// restore relative protocol, if applicable
+	if (hasRelativeProtocol && !opts.normalizeProtocol) {
+		str = str.replace(/^http:\/\//, '//');
+	}
+
+	return str;
+};
+
+},{"object-assign":28,"prepend-http":29,"punycode":1,"query-string":30,"sort-keys":31,"url":5}],28:[function(require,module,exports){
+'use strict';
+
+function ToObject(val) {
+	if (val == null) {
+		throw new TypeError('Object.assign cannot be called with null or undefined');
+	}
+
+	return Object(val);
+}
+
+module.exports = Object.assign || function (target, source) {
+	var from;
+	var keys;
+	var to = ToObject(target);
+
+	for (var s = 1; s < arguments.length; s++) {
+		from = arguments[s];
+		keys = Object.keys(Object(from));
+
+		for (var i = 0; i < keys.length; i++) {
+			to[keys[i]] = from[keys[i]];
+		}
+	}
+
+	return to;
+};
+
+},{}],29:[function(require,module,exports){
+'use strict';
+module.exports = function (url) {
+	if (typeof url !== 'string') {
+		throw new TypeError('Expected a string');
+	}
+
+	return url.trim().replace(/^(?!(?:\w+:)?\/\/)/, 'http://');
+};
+
+},{}],30:[function(require,module,exports){
+'use strict';
+
+exports.parse = function (str) {
+	if (typeof str !== 'string') {
+		return {};
+	}
+
+	str = str.trim().replace(/^(\?|#|&)/, '');
+
+	if (!str) {
+		return {};
+	}
+
+	return str.trim().split('&').reduce(function (ret, param) {
+		var parts = param.replace(/\+/g, ' ').split('=');
+		var key = parts[0];
+		var val = parts[1];
+
+		key = decodeURIComponent(key);
+		// missing `=` should be `null`:
+		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
+		val = val === undefined ? null : decodeURIComponent(val);
+
+		if (!ret.hasOwnProperty(key)) {
+			ret[key] = val;
+		} else if (Array.isArray(ret[key])) {
+			ret[key].push(val);
+		} else {
+			ret[key] = [ret[key], val];
+		}
+
+		return ret;
+	}, {});
+};
+
+exports.stringify = function (obj) {
+	return obj ? Object.keys(obj).sort().map(function (key) {
+		var val = obj[key];
+
+		if (Array.isArray(val)) {
+			return val.sort().map(function (val2) {
+				return encodeURIComponent(key) + '=' + encodeURIComponent(val2);
+			}).join('&');
+		}
+
+		return encodeURIComponent(key) + '=' + encodeURIComponent(val);
+	}).join('&') : '';
+};
+
+},{}],31:[function(require,module,exports){
+'use strict';
+module.exports = function (obj, compareFn) {
+	if (typeof obj !== 'object') {
+		throw new TypeError('Expected an object');
+	}
+
+	var ret = {};
+
+	Object.keys(obj).sort(compareFn).forEach(function (el) {
+		ret[el] = obj[el];
+	});
+
+	return ret;
+};
+
+},{}],32:[function(require,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -3430,7 +3620,7 @@ _defaults(exports, _interopRequireWildcard(_requestInterceptor));
 var _responseInterceptor = require('./responseInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_responseInterceptor));
-},{"./requestInterceptor":28,"./responseInterceptor":29}],28:[function(require,module,exports){
+},{"./requestInterceptor":33,"./responseInterceptor":34}],33:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3458,7 +3648,7 @@ var RequestInterceptor = (function () {
 })();
 
 exports.RequestInterceptor = RequestInterceptor;
-},{}],29:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3486,7 +3676,7 @@ var ResponseInterceptor = (function () {
 })();
 
 exports.ResponseInterceptor = ResponseInterceptor;
-},{}],30:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3504,7 +3694,7 @@ _defaults(exports, _interopRequireWildcard(_restClient));
 var _coreBaseInterceptors = require('./core/baseInterceptors');
 
 _defaults(exports, _interopRequireWildcard(_coreBaseInterceptors));
-},{"./core/baseInterceptors":27,"./restClient/":32}],31:[function(require,module,exports){
+},{"./core/baseInterceptors":32,"./restClient/":37}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3552,7 +3742,7 @@ var Http = (function () {
 })();
 
 exports.Http = Http;
-},{"./utils":37,"superagent-es6-promise":55}],32:[function(require,module,exports){
+},{"./utils":42,"superagent-es6-promise":43}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3578,7 +3768,7 @@ _defaults(exports, _interopRequireWildcard(_response));
 var _restResource = require('./restResource');
 
 _defaults(exports, _interopRequireWildcard(_restResource));
-},{"./request":33,"./response":34,"./restClient":35,"./restResource":36}],33:[function(require,module,exports){
+},{"./request":38,"./response":39,"./restClient":40,"./restResource":41}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3610,7 +3800,7 @@ var Request = (function () {
     this._baseUrl = baseUrl;
     this._interceptors = config.interceptors || [];
     this._http = config.http;
-    this._resourceName = resourceName;
+    this.resourceName = resourceName;
     this._allConfig = config;
     this._config = config[resourceName] || {};
     this._restKeys = ['findAll', 'search', 'findOne', 'save', 'toJSON'];
@@ -3693,7 +3883,7 @@ var Request = (function () {
             other[_key - 1] = arguments[_key];
           }
 
-          var url = _this._baseUrl + _this._resourceName + '/' + obj.id + '/';
+          var url = _this._baseUrl + _this.resourceName + '/' + obj.id + '/';
           var r = _this.restResource._createSubInstance(url, resource, _this._allConfig);
           return r[method].apply(r, other).sendRequest();
         };
@@ -3791,7 +3981,7 @@ var Request = (function () {
 })();
 
 exports.Request = Request;
-},{"../core/baseInterceptors/":27,"./response":34,"./utils":37,"normalize-url":50}],34:[function(require,module,exports){
+},{"../core/baseInterceptors/":32,"./response":39,"./utils":42,"normalize-url":27}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3828,7 +4018,7 @@ var Response = (function () {
 })();
 
 exports.Response = Response;
-},{"lodash.isobject":49}],35:[function(require,module,exports){
+},{"lodash.isobject":26}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3913,7 +4103,7 @@ var RestClient = (function () {
 })();
 
 exports.RestClient = RestClient;
-},{"./http":31,"./restResource":36,"lodash.assign":38}],36:[function(require,module,exports){
+},{"./http":36,"./restResource":41,"lodash.assign":9}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3935,7 +4125,7 @@ var RestResource = (function () {
     _classCallCheck(this, RestResource);
 
     this._baseUrl = baseUrl + '/';
-    this._resourceName = resourceName;
+    this.resourceName = resourceName;
     this._config = config;
 
     this._config.defaultHeaders = config.defaultHeaders || {};
@@ -3950,9 +4140,9 @@ var RestResource = (function () {
       var responseType = arguments[1] === undefined ? Array : arguments[1];
       var addUrl = arguments[2] === undefined ? '' : arguments[2];
 
-      var request = new _request.Request(this._baseUrl, this._resourceName, this, this._config);
+      var request = new _request.Request(this._baseUrl, this.resourceName, this, this._config);
       request.responseType = responseType;
-      request.url = this._baseUrl + this._resourceName + addUrl;
+      request.url = this._baseUrl + this.resourceName + addUrl;
       request.method = method;
       return request;
     }
@@ -4004,7 +4194,7 @@ var RestResource = (function () {
 })();
 
 exports.RestResource = RestResource;
-},{"./http":31,"./request":33}],37:[function(require,module,exports){
+},{"./http":36,"./request":38}],42:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4015,221 +4205,7 @@ exports.isNotEmpty = isNotEmpty;
 function isNotEmpty(arr) {
   return arr && Array.isArray(arr) && arr.length;
 }
-},{}],38:[function(require,module,exports){
-arguments[4][9][0].apply(exports,arguments)
-},{"dup":9,"lodash._baseassign":39,"lodash._createassigner":41,"lodash.keys":45}],39:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10,"lodash._basecopy":40,"lodash.keys":45}],40:[function(require,module,exports){
-arguments[4][11][0].apply(exports,arguments)
-},{"dup":11}],41:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"dup":12,"lodash._bindcallback":42,"lodash._isiterateecall":43,"lodash.restparam":44}],42:[function(require,module,exports){
-arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],43:[function(require,module,exports){
-arguments[4][14][0].apply(exports,arguments)
-},{"dup":14}],44:[function(require,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"dup":15}],45:[function(require,module,exports){
-arguments[4][16][0].apply(exports,arguments)
-},{"dup":16,"lodash._getnative":46,"lodash.isarguments":47,"lodash.isarray":48}],46:[function(require,module,exports){
-arguments[4][17][0].apply(exports,arguments)
-},{"dup":17}],47:[function(require,module,exports){
-arguments[4][18][0].apply(exports,arguments)
-},{"dup":18}],48:[function(require,module,exports){
-arguments[4][19][0].apply(exports,arguments)
-},{"dup":19}],49:[function(require,module,exports){
-arguments[4][26][0].apply(exports,arguments)
-},{"dup":26}],50:[function(require,module,exports){
-'use strict';
-var url = require('url');
-var punycode = require('punycode');
-var queryString = require('query-string');
-var prependHttp = require('prepend-http');
-var sortKeys = require('sort-keys');
-var objectAssign = require('object-assign');
-
-var DEFAULT_PORTS = {
-	'http:': 80,
-	'https:': 443,
-	'ftp:': 21
-};
-
-module.exports = function (str, opts) {
-	opts = objectAssign({
-		normalizeProtocol: true,
-		stripFragment: true
-	}, opts);
-
-	if (typeof str !== 'string') {
-		throw new TypeError('Expected a string');
-	}
-
-	var hasRelativeProtocol = str.indexOf('//') === 0;
-
-	// prepend protocol
-	str = prependHttp(str.trim()).replace(/^\/\//, 'http://');
-
-	var urlObj = url.parse(str);
-
-	// prevent these from being used by `url.format`
-	delete urlObj.host;
-	delete urlObj.query;
-
-	// remove fragment
-	if (opts.stripFragment) {
-		delete urlObj.hash;
-	}
-
-	// remove default port
-	var port = DEFAULT_PORTS[urlObj.protocol];
-	if (Number(urlObj.port) === port) {
-		delete urlObj.port;
-	}
-
-	// remove duplicate slashes
-	urlObj.pathname = urlObj.pathname.replace(/\/{2,}/, '/');
-
-	// resolve relative paths
-	var domain = urlObj.protocol + '//' + urlObj.hostname;
-	var relative = url.resolve(domain, urlObj.pathname);
-	urlObj.pathname = relative.replace(domain, '');
-
-	// IDN to Unicode
-	urlObj.hostname = punycode.toUnicode(urlObj.hostname).toLowerCase();
-
-	// remove `www.`
-	urlObj.hostname = urlObj.hostname.replace(/^www\./, '');
-
-	// remove URL with empty query string
-	if (urlObj.search === '?') {
-		delete urlObj.search;
-	}
-
-	// sort query parameters
-	urlObj.search = queryString.stringify(sortKeys(queryString.parse(urlObj.search)));
-
-	// decode query parameters
-	urlObj.search = decodeURIComponent(urlObj.search);
-
-	// take advantage of many of the Node `url` normalizations
-	str = url.format(urlObj);
-
-	// remove ending `/`
-	str = str.replace(/\/$/, '');
-
-	// restore relative protocol, if applicable
-	if (hasRelativeProtocol && !opts.normalizeProtocol) {
-		str = str.replace(/^http:\/\//, '//');
-	}
-
-	return str;
-};
-
-},{"object-assign":51,"prepend-http":52,"punycode":1,"query-string":53,"sort-keys":54,"url":5}],51:[function(require,module,exports){
-'use strict';
-
-function ToObject(val) {
-	if (val == null) {
-		throw new TypeError('Object.assign cannot be called with null or undefined');
-	}
-
-	return Object(val);
-}
-
-module.exports = Object.assign || function (target, source) {
-	var from;
-	var keys;
-	var to = ToObject(target);
-
-	for (var s = 1; s < arguments.length; s++) {
-		from = arguments[s];
-		keys = Object.keys(Object(from));
-
-		for (var i = 0; i < keys.length; i++) {
-			to[keys[i]] = from[keys[i]];
-		}
-	}
-
-	return to;
-};
-
-},{}],52:[function(require,module,exports){
-'use strict';
-module.exports = function (url) {
-	if (typeof url !== 'string') {
-		throw new TypeError('Expected a string');
-	}
-
-	return url.trim().replace(/^(?!(?:\w+:)?\/\/)/, 'http://');
-};
-
-},{}],53:[function(require,module,exports){
-'use strict';
-
-exports.parse = function (str) {
-	if (typeof str !== 'string') {
-		return {};
-	}
-
-	str = str.trim().replace(/^(\?|#|&)/, '');
-
-	if (!str) {
-		return {};
-	}
-
-	return str.trim().split('&').reduce(function (ret, param) {
-		var parts = param.replace(/\+/g, ' ').split('=');
-		var key = parts[0];
-		var val = parts[1];
-
-		key = decodeURIComponent(key);
-		// missing `=` should be `null`:
-		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
-		val = val === undefined ? null : decodeURIComponent(val);
-
-		if (!ret.hasOwnProperty(key)) {
-			ret[key] = val;
-		} else if (Array.isArray(ret[key])) {
-			ret[key].push(val);
-		} else {
-			ret[key] = [ret[key], val];
-		}
-
-		return ret;
-	}, {});
-};
-
-exports.stringify = function (obj) {
-	return obj ? Object.keys(obj).sort().map(function (key) {
-		var val = obj[key];
-
-		if (Array.isArray(val)) {
-			return val.sort().map(function (val2) {
-				return encodeURIComponent(key) + '=' + encodeURIComponent(val2);
-			}).join('&');
-		}
-
-		return encodeURIComponent(key) + '=' + encodeURIComponent(val);
-	}).join('&') : '';
-};
-
-},{}],54:[function(require,module,exports){
-'use strict';
-module.exports = function (obj, compareFn) {
-	if (typeof obj !== 'object') {
-		throw new TypeError('Expected an object');
-	}
-
-	var ret = {};
-
-	Object.keys(obj).sort(compareFn).forEach(function (el) {
-		ret[el] = obj[el];
-	});
-
-	return ret;
-};
-
-},{}],55:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 // So you can `var request = require("superagent-es6-promise")`
 var superagent = module.exports = require("superagent");
 var Request = superagent.Request;
@@ -4296,7 +4272,7 @@ Request.prototype.then = function() {
   return promise.then.apply(promise, arguments);
 };
 
-},{"superagent":56}],56:[function(require,module,exports){
+},{"superagent":44}],44:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -5421,7 +5397,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":57,"reduce":58}],57:[function(require,module,exports){
+},{"emitter":45,"reduce":46}],45:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -5587,7 +5563,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],58:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -5612,7 +5588,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],59:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5717,7 +5693,7 @@ var HalRequest = (function (_Request) {
 
 exports.HalRequest = HalRequest;
 
-},{"./interceptors/":65,"vador":30}],60:[function(require,module,exports){
+},{"./interceptors/":53,"vador":35}],48:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5765,9 +5741,9 @@ var HalResource = (function (_RestResource) {
       var responseType = arguments[1] === undefined ? Array : arguments[1];
       var addUrl = arguments[2] === undefined ? '' : arguments[2];
 
-      var request = new _halRequest.HalRequest(this._baseUrl, this._resourceName, this, this._config);
+      var request = new _halRequest.HalRequest(this._baseUrl, this.resourceName, this, this._config);
       request.responseType = responseType;
-      request.url = this._baseUrl + this._resourceName + addUrl;
+      request.url = this._baseUrl + this.resourceName + addUrl;
       request.method = method;
       return request;
     }
@@ -5843,7 +5819,7 @@ var HalResource = (function (_RestResource) {
 
 exports.HalResource = HalResource;
 
-},{"./halRequest":59,"lodash.assign":9,"vador":30}],61:[function(require,module,exports){
+},{"./halRequest":47,"lodash.assign":9,"vador":35}],49:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5902,7 +5878,7 @@ var HalRestClient = (function (_RestClient) {
 
 exports.HalRestClient = HalRestClient;
 
-},{"./halResource":60,"lodash.assign":9,"vador":30}],62:[function(require,module,exports){
+},{"./halResource":48,"lodash.assign":9,"vador":35}],50:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5929,7 +5905,7 @@ var _interceptors = require('./interceptors');
 
 _defaults(exports, _interopRequireWildcard(_interceptors));
 
-},{"./halRequest":59,"./halResource":60,"./halRestClient":61,"./interceptors":65}],63:[function(require,module,exports){
+},{"./halRequest":47,"./halResource":48,"./halRestClient":49,"./interceptors":53}],51:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5975,7 +5951,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
   _createClass(EmbeddedExtractorInterceptor, [{
     key: 'response',
     value: function response(_response) {
-      debug('embedded extractor start');
+      debug('embedded extractor start', _response.request.resourceName, _response.request.responseType, _response.value);
       var value = _response.value;
       var request = _response.request;
 
@@ -6009,7 +5985,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":30}],64:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"vador":35}],52:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6099,7 +6075,7 @@ var IdExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.IdExtractorInterceptor = IdExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":30}],65:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"vador":35}],53:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6126,7 +6102,7 @@ var _populateInterceptor = require('./populateInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_populateInterceptor));
 
-},{"./embeddedExtractorInterceptor":63,"./idExtractorInterceptor":64,"./linkExtractorInterceptor":66,"./populateInterceptor":67}],66:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":51,"./idExtractorInterceptor":52,"./linkExtractorInterceptor":54,"./populateInterceptor":55}],54:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6257,7 +6233,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"lodash.isobject":26,"vador":30}],67:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"lodash.isobject":26,"vador":35}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6337,7 +6313,9 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
         var t = pop.split('.');
         var rel = t.shift();
         var link = links[rel];
-        if (rel && (0, _lodashHas2['default'])(links, rel) && ! ~object[CACHE_FETCH].indexOf(link)) {
+        // if (rel && has(links, rel) && !~object[CACHE_FETCH].indexOf(link)) {
+        if (rel && (0, _lodashHas2['default'])(links, rel)) {
+
           object[CACHE_FETCH].push(link);
           var url = link.substring(0, link.indexOf(rel));
           var r = request.restResource._createSubInstance(url, rel);
@@ -6346,7 +6324,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
             promise.populate(t.join('.'));
           }
           promise = promise.sendRequest().then(function (res) {
-            object[rel] = res[0];
+            object[rel] = res.value;
           });
           promises.push(promise);
         }
@@ -6371,5 +6349,5 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
 
 exports.PopulateInterceptor = PopulateInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":30}]},{},[62])(62)
+},{"debug":6,"lodash.has":20,"vador":35}]},{},[50])(50)
 });
