@@ -60,8 +60,8 @@ export class HalRequest extends Request {
                       return request
                         .findAll()
                         .sendRequest()
-                        .spread(res => {
-                          value = res;
+                        .then(res => {
+                          value = res.value;
                           return Promise.resolve(value);
                         });
                     }
