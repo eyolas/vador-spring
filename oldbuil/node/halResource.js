@@ -16,9 +16,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 var _vador = require('vador');
 
-var _lodashObjectAssign = require('lodash/object/assign');
+var _lodashAssign = require('lodash.assign');
 
-var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
+var _lodashAssign2 = _interopRequireDefault(_lodashAssign);
 
 var _halRequest = require('./halRequest');
 
@@ -101,7 +101,7 @@ var HalResource = (function (_RestResource) {
     value: function save(obj) {
       var _this2 = this;
 
-      var links = (0, _lodashObjectAssign2['default'])({}, this._relations || {});
+      var links = (0, _lodashAssign2['default'])({}, this._relations || {});
       if (links) {
         Object.keys(links).forEach(function (rel) {
           if (obj.hasOwnProperty(rel)) {

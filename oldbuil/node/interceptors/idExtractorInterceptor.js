@@ -14,6 +14,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 var _vador = require('vador');
 
+var _lodashHas = require('lodash.has');
+
+var _lodashHas2 = _interopRequireDefault(_lodashHas);
+
 var _debug = require('debug');
 
 var _debug2 = _interopRequireDefault(_debug);

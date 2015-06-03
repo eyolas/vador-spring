@@ -1,5 +1,5 @@
 import {RestResource} from 'vador';
-import assign from 'lodash.assign';
+import assign from 'lodash/object/assign';
 import {HalRequest} from './halRequest';
 
 export class HalResource extends RestResource {

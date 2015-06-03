@@ -18,9 +18,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 var _vador = require('vador');
 
-var _lodashObjectHas = require('lodash/object/has');
+var _lodashHas = require('lodash.has');
 
-var _lodashObjectHas2 = _interopRequireDefault(_lodashObjectHas);
+var _lodashHas2 = _interopRequireDefault(_lodashHas);
 
 var _debug = require('debug');
 
@@ -48,7 +48,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
       var request = _response.request;
 
       if (request.responseType === Array) {
-        if ((0, _lodashObjectHas2['default'])(value, '' + this.tagEmbedded + '.' + request.resourceName)) {
+        if ((0, _lodashHas2['default'])(value, '' + this.tagEmbedded + '.' + request.resourceName)) {
           var val = [];
           for (var k in value) {
             if (k !== this.tagEmbedded) {

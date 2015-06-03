@@ -16,9 +16,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 var _vador = require('vador');
 
-var _lodashObjectHas = require('lodash/object/has');
+var _lodashHas = require('lodash.has');
 
-var _lodashObjectHas2 = _interopRequireDefault(_lodashObjectHas);
+var _lodashHas2 = _interopRequireDefault(_lodashHas);
 
 var _debug = require('debug');
 
@@ -75,7 +75,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
       var populates = request.populates;
 
       populates.keys().forEach(function (rel) {
-        if (rel && (0, _lodashObjectHas2['default'])(links, rel)) {
+        if (rel && (0, _lodashHas2['default'])(links, rel)) {
           var link = links[rel];
           var url = link.substring(0, link.indexOf(rel));
           var r = request.restResource._createSubInstance(url, rel);

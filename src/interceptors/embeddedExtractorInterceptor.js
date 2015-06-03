@@ -1,5 +1,5 @@
 import {ResponseInterceptor} from 'vador';
-import has from 'lodash.has';
+import has from 'lodash/object/has';
 import Debug from 'debug';
 
 var debug = new Debug('halClient [Interceptor]');

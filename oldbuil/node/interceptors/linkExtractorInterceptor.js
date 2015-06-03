@@ -16,13 +16,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 var _vador = require('vador');
 
-var _lodashObjectHas = require('lodash/object/has');
+var _lodashHas = require('lodash.has');
 
-var _lodashObjectHas2 = _interopRequireDefault(_lodashObjectHas);
+var _lodashHas2 = _interopRequireDefault(_lodashHas);
 
-var _lodashLangIsObject = require('lodash/lang/isObject');
+var _lodashIsobject = require('lodash.isobject');
 
-var _lodashLangIsObject2 = _interopRequireDefault(_lodashLangIsObject);
+var _lodashIsobject2 = _interopRequireDefault(_lodashIsobject);
 
 var _debug = require('debug');
 
@@ -74,7 +74,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
     key: '_extractOne',
     value: function _extractOne(object) {
       var hasRestLinks = false;
-      if ((0, _lodashObjectHas2['default'])(object, '' + this.tagLink) && (0, _lodashLangIsObject2['default'])(object[this.tagLink])) {
+      if ((0, _lodashHas2['default'])(object, '' + this.tagLink) && (0, _lodashIsobject2['default'])(object[this.tagLink])) {
         debug('add **links**');
         hasRestLinks = true;
 
@@ -106,7 +106,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
       var selfLink = null;
       Object.keys(links).forEach(function (k) {
         var link = links[k];
-        if ((0, _lodashLangIsObject2['default'])(link) && (0, _lodashObjectHas2['default'])(link, _this2.tagHref)) {
+        if ((0, _lodashIsobject2['default'])(link) && (0, _lodashHas2['default'])(link, _this2.tagHref)) {
           if (k === _this2.tagSelf) {
             selfLink = link[_this2.tagHref];
           } else {

@@ -10,13 +10,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _lodashObjectSet = require('lodash/object/set');
+var _lodashSet = require('lodash.set');
 
-var _lodashObjectSet2 = _interopRequireDefault(_lodashObjectSet);
+var _lodashSet2 = _interopRequireDefault(_lodashSet);
 
-var _lodashLangIsObject = require('lodash/lang/isObject');
+var _lodashIsobject = require('lodash.isobject');
 
-var _lodashLangIsObject2 = _interopRequireDefault(_lodashLangIsObject);
+var _lodashIsobject2 = _interopRequireDefault(_lodashIsobject);
 
 var Populate = (function () {
   function Populate() {
@@ -33,7 +33,7 @@ var Populate = (function () {
 
     //transform array to tree
     populates.forEach(function (populate) {
-      _this._populates = (0, _lodashObjectSet2['default'])(_this._populates, populate, {});
+      _this._populates = (0, _lodashSet2['default'])(_this._populates, populate, {});
     });
   }
 
@@ -60,7 +60,7 @@ var Populate = (function () {
       var populates = [];
       Object.keys(obj).forEach(function (k) {
         var val = obj[k];
-        if ((0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length) {
+        if ((0, _lodashIsobject2['default'])(val) && Object.keys(val).length) {
           var p = _this2._getPopulate(val);
           p.forEach(function (v) {
             return populates.push(k + '.' + v);

@@ -16,9 +16,9 @@ var _vador = require('vador');
 
 var _halResource = require('./halResource');
 
-var _lodashObjectAssign = require('lodash/object/assign');
+var _lodashAssign = require('lodash.assign');
 
-var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
+var _lodashAssign2 = _interopRequireDefault(_lodashAssign);
 
 var HalRestClient = (function (_RestClient) {
   function HalRestClient() {
@@ -37,8 +37,8 @@ var HalRestClient = (function (_RestClient) {
       var config = arguments[1] === undefined ? {} : arguments[1];
 
       if (!this._cache[resourceName]) {
-        var conf = (0, _lodashObjectAssign2['default'])({}, this._config, config);
-        conf.defaultHeaders = (0, _lodashObjectAssign2['default'])({}, this._headers, config.defaultHeaders || {});
+        var conf = (0, _lodashAssign2['default'])({}, this._config, config);
+        conf.defaultHeaders = (0, _lodashAssign2['default'])({}, this._headers, config.defaultHeaders || {});
         conf.interceptors = (config.interceptors || []).concat(this._interceptors);
         if (!conf.http) {
           conf.http = this._http;

@@ -1,6 +1,6 @@
 import {ResponseInterceptor} from 'vador';
-import has from 'lodash.has';
-import isObject from 'lodash.isobject';
+import has from 'lodash/object/has';
+import isObject from 'lodash/lang/isObject';
 import Debug from 'debug';
 
 var debug = new Debug('halClient [Interceptor]');

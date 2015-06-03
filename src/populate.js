@@ -1,5 +1,5 @@
-import set from 'lodash.set';
-import isObject from 'lodash.isobject';
+import set from 'lodash/object/set';
+import isObject from 'lodash/lang/isObject';
 
 export class Populate {
   constructor(populates = []) {

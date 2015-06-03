@@ -30,10 +30,7 @@
   "homepage": "https://github.com/eyolas/vador-spring#readme",
   "dependencies": {
     "debug": "^2.2.0",
-    "lodash.assign": "^3.2.0",
-    "lodash.has": "^3.2.1",
-    "lodash.isobject": "^3.0.2",
-    "lodash.set": "^3.7.4",
+    "lodash": "^3.9.3",
     "normalize-url": "^1.2.1",
     "vador": "^1.2.2"
   },

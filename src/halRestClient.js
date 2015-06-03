@@ -1,6 +1,6 @@
 import {RestClient} from 'vador';
 import {HalResource} from './halResource';
-import assign from 'lodash.assign';
+import assign from 'lodash/object/assign';
 
 export class HalRestClient extends RestClient {
   resource(resourceName, config = {}) {
