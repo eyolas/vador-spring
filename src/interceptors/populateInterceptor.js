@@ -4,8 +4,6 @@ import Debug from 'debug';
 
 var debug = new Debug('halClient [Interceptor]');
 
-const CACHE_FETCH = '**cache_fetch**';
-
 export class PopulateInterceptor extends ResponseInterceptor {
   response(response) {
     debug('populate interceptor begin');
@@ -36,38 +34,34 @@ export class PopulateInterceptor extends ResponseInterceptor {
   _populateOne(object, request) {
     debug('populate one');
     let links = object['**links**'];
-    object[CACHE_FETCH] = [];
 
     let promises = [];
-    request.populates.forEach(pop => {
-      var t = pop.split('.');
-      var rel = t.shift();
-      let link = links[rel];
-      // if (rel && has(links, rel) && !~object[CACHE_FETCH].indexOf(link)) {
-      if (rel && has(links, rel)) {
+    var populates = request.populates;
 
-        object[CACHE_FETCH].push(link);
-        let url = link.substring(0, link.indexOf(rel));
-        let r = request.restResource._createSubInstance(url, rel);
-        var promise = r.findAll();
-        if (t && t.length) {
-          promise.populate(t.join('.'));
+    populates
+      .keys()
+      .forEach(rel => {
+        if (rel && has(links, rel)) {
+          let link = links[rel];
+          let url = link.substring(0, link.indexOf(rel));
+          let r = request.restResource._createSubInstance(url, rel);
+          var promise = r.findAll();
+          var subPopulate = populates.getSubPopulate(rel);
+          if (Array.isArray(subPopulate) && subPopulate.length) {
+            promise.populate(...subPopulate);
+          }
+          promise = promise
+            .sendRequest()
+            .then(res => {
+              object[rel] = res.value;
+            });
+          promises.push(promise);
         }
-        promise = promise
-          .sendRequest()
-          .then(res => {
-            object[rel] = res.value;
-          });
-        promises.push(promise);
-      }
-    });
+      });
 
     return Promise
       .all(promises)
       .then(() => {
-        if (has(object, CACHE_FETCH)) {
-          delete object[CACHE_FETCH];
-        }
         return object;
       });
   }

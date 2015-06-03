@@ -1,4 +1,5 @@
 import {Request} from 'vador';
+import {Populate} from './populate';
 import {IdExtractorInterceptor, LinkExtractorInterceptor, EmbeddedExtractorInterceptor, PopulateInterceptor}
 from './interceptors/';
 
@@ -6,7 +7,7 @@ from './interceptors/';
 export class HalRequest extends Request {
   constructor(baseUrl, resourceName, restResource, config = {}) {
     super(baseUrl, resourceName, restResource, config);
-    this._populate = [];
+    this._populates = [];
     this._relations = this._config.relations || null;
     this._restKeys.push('**links**', '**selfLink**', '**hasLinks**');
 
@@ -22,16 +23,16 @@ export class HalRequest extends Request {
   }
 
   populate(...rel) {
-    this._populate.push(...rel);
+    this._populates.push(...rel);
     return this;
   }
 
   get populates() {
-    return this._populate;
+    return new Populate(this._populates);
   }
 
   hasPopulate() {
-    let pop = this._populate;
+    let pop = this._populates;
     return Array.isArray(pop) && pop.length > 0;
   }
 

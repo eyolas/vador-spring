@@ -13,7 +13,7 @@ export class EmbeddedExtractorInterceptor extends ResponseInterceptor {
   }
 
   response(response) {
-    debug('embedded extractor start',response.request.resourceName, response.request.responseType, response.value);
+    debug('embedded extractor start');
     let {value, request} = response;
     if (request.responseType === Array) {
       if (has(value, `${this.tagEmbedded}.${request.resourceName}`)) {
