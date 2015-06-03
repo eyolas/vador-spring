@@ -3332,7 +3332,7 @@ var Http = (function () {
 })();
 
 exports.Http = Http;
-},{"./utils":57,"superagent-es6-promise":83}],52:[function(require,module,exports){
+},{"./utils":57,"superagent-es6-promise":58}],52:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3602,7 +3602,7 @@ var Response = (function () {
 })();
 
 exports.Response = Response;
-},{"lodash/lang/isObject":77}],55:[function(require,module,exports){
+},{"lodash/lang/isObject":34}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3664,19 +3664,25 @@ var RestClient = (function () {
       }
     }
   }, {
+    key: 'instanciateResource',
+    value: function instanciateResource(resourceName, conf) {
+      return new _restResource.RestResource(this._baseUrl, resourceName, conf);
+    }
+  }, {
     key: 'resource',
     value: function resource(resourceName) {
       var config = arguments[1] === undefined ? {} : arguments[1];
 
       if (!this._cache[resourceName]) {
-        var conf = (0, _lodashObjectAssign2['default'])({}, this._config, config);
+        var conf = (0, _lodashObjectAssign2['default'])({}, this._config);
+        conf.http = config.http || null;
         conf.defaultHeaders = (0, _lodashObjectAssign2['default'])({}, this._headers, config.defaultHeaders || {});
         conf.interceptors = (config.interceptors || []).concat(this._interceptors);
         if (!conf.http) {
           conf.http = this._http;
         }
 
-        this._cache[resourceName] = new _restResource.RestResource(this._baseUrl, resourceName, conf);
+        this._cache[resourceName] = this.instanciateResource(resourceName, conf);
       }
 
       return this._cache[resourceName];
@@ -3687,7 +3693,7 @@ var RestClient = (function () {
 })();
 
 exports.RestClient = RestClient;
-},{"./http":51,"./restResource":56,"lodash/object/assign":78}],56:[function(require,module,exports){
+},{"./http":51,"./restResource":56,"lodash/object/assign":35}],56:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3696,14 +3702,24 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _request = require('./request');
 
 var _http = require('./http');
 
+var _lodashLangIsObject = require('lodash/lang/isObject');
+
+var _lodashLangIsObject2 = _interopRequireDefault(_lodashLangIsObject);
+
+var _uriTemplate = require('uri-template');
+
 var RestResource = (function () {
   function RestResource(baseUrl, resourceName) {
+    var _this = this;
+
     var config = arguments[2] === undefined ? {} : arguments[2];
 
     _classCallCheck(this, RestResource);
@@ -3711,10 +3727,40 @@ var RestResource = (function () {
     this._baseUrl = baseUrl + '/';
     this.resourceName = resourceName;
     this._config = config;
+    var config = this._config[resourceName] || {};
 
     this._config.defaultHeaders = config.defaultHeaders || {};
     this._config.interceptors = config.interceptors || [];
     this._config.http = config.http || new _http.Http();
+
+    if ((0, _lodashLangIsObject2['default'])(config.methods)) {
+      (function () {
+        var methods = config.methods;
+        Object.keys(methods).forEach(function (method) {
+          var type = Array;
+          var href = methods[method];
+
+          if ((0, _lodashLangIsObject2['default'])(methods[method])) {
+            var _methods$method = methods[method];
+            type = _methods$method.type;
+            href = _methods$method.href;
+          }
+
+          var url = (0, _uriTemplate.parse)(href);
+
+          _this[method] = (function (url, type) {
+            return function () {
+              var obj = arguments[0] === undefined ? {} : arguments[0];
+
+              console.log('call with', obj);
+              var addUrl = url.expand(obj);
+              console.log('get', type, addUrl);
+              return _this.constructBaseRequest('get', type, addUrl);
+            };
+          })(url, type);
+        });
+      })();
+    }
   }
 
   _createClass(RestResource, [{
@@ -3729,11 +3775,6 @@ var RestResource = (function () {
       request.url = this._baseUrl + this.resourceName + addUrl;
       request.method = method;
       return request;
-    }
-  }, {
-    key: 'config',
-    set: function (config) {
-      this._config = config;
     }
   }, {
     key: 'findAll',
@@ -3778,7 +3819,7 @@ var RestResource = (function () {
 })();
 
 exports.RestResource = RestResource;
-},{"./http":51,"./request":53}],57:[function(require,module,exports){
+},{"./http":51,"./request":53,"lodash/lang/isObject":34,"uri-template":62}],57:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3807,56 +3848,6 @@ function normalizeUrl(url) {
   }
 }
 },{"normalize-url":42}],58:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10}],59:[function(require,module,exports){
-arguments[4][11][0].apply(exports,arguments)
-},{"../object/keys":79,"dup":11}],60:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"../object/keys":79,"./baseCopy":61,"dup":12}],61:[function(require,module,exports){
-arguments[4][13][0].apply(exports,arguments)
-},{"dup":13}],62:[function(require,module,exports){
-arguments[4][15][0].apply(exports,arguments)
-},{"dup":15}],63:[function(require,module,exports){
-arguments[4][17][0].apply(exports,arguments)
-},{"dup":17}],64:[function(require,module,exports){
-arguments[4][18][0].apply(exports,arguments)
-},{"../utility/identity":82,"dup":18}],65:[function(require,module,exports){
-arguments[4][19][0].apply(exports,arguments)
-},{"../function/restParam":58,"./bindCallback":64,"./isIterateeCall":70,"dup":19}],66:[function(require,module,exports){
-arguments[4][20][0].apply(exports,arguments)
-},{"./baseProperty":62,"dup":20}],67:[function(require,module,exports){
-arguments[4][21][0].apply(exports,arguments)
-},{"../lang/isNative":76,"dup":21}],68:[function(require,module,exports){
-arguments[4][22][0].apply(exports,arguments)
-},{"./getLength":66,"./isLength":71,"dup":22}],69:[function(require,module,exports){
-arguments[4][23][0].apply(exports,arguments)
-},{"dup":23}],70:[function(require,module,exports){
-arguments[4][24][0].apply(exports,arguments)
-},{"../lang/isObject":77,"./isArrayLike":68,"./isIndex":69,"dup":24}],71:[function(require,module,exports){
-arguments[4][26][0].apply(exports,arguments)
-},{"dup":26}],72:[function(require,module,exports){
-arguments[4][27][0].apply(exports,arguments)
-},{"dup":27}],73:[function(require,module,exports){
-arguments[4][28][0].apply(exports,arguments)
-},{"../lang/isArguments":74,"../lang/isArray":75,"../object/keysIn":80,"./isIndex":69,"./isLength":71,"dup":28}],74:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"../internal/isArrayLike":68,"../internal/isObjectLike":72,"dup":31}],75:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"../internal/getNative":67,"../internal/isLength":71,"../internal/isObjectLike":72,"dup":32}],76:[function(require,module,exports){
-arguments[4][33][0].apply(exports,arguments)
-},{"../internal/isObjectLike":72,"../string/escapeRegExp":81,"dup":33}],77:[function(require,module,exports){
-arguments[4][34][0].apply(exports,arguments)
-},{"dup":34}],78:[function(require,module,exports){
-arguments[4][35][0].apply(exports,arguments)
-},{"../internal/assignWith":59,"../internal/baseAssign":60,"../internal/createAssigner":65,"dup":35}],79:[function(require,module,exports){
-arguments[4][37][0].apply(exports,arguments)
-},{"../internal/getNative":67,"../internal/isArrayLike":68,"../internal/shimKeys":73,"../lang/isObject":77,"dup":37}],80:[function(require,module,exports){
-arguments[4][38][0].apply(exports,arguments)
-},{"../internal/isIndex":69,"../internal/isLength":71,"../lang/isArguments":74,"../lang/isArray":75,"../lang/isObject":77,"dup":38}],81:[function(require,module,exports){
-arguments[4][40][0].apply(exports,arguments)
-},{"../internal/baseToString":63,"dup":40}],82:[function(require,module,exports){
-arguments[4][41][0].apply(exports,arguments)
-},{"dup":41}],83:[function(require,module,exports){
 // So you can `var request = require("superagent-es6-promise")`
 var superagent = module.exports = require("superagent");
 var Request = superagent.Request;
@@ -3923,7 +3914,7 @@ Request.prototype.then = function() {
   return promise.then.apply(promise, arguments);
 };
 
-},{"superagent":84}],84:[function(require,module,exports){
+},{"superagent":59}],59:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -5048,7 +5039,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":85,"reduce":86}],85:[function(require,module,exports){
+},{"emitter":60,"reduce":61}],60:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -5214,7 +5205,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],86:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -5239,7 +5230,1191 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],87:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
+module.exports = (function(){
+  /*
+   * Generated by PEG.js 0.7.0.
+   *
+   * http://pegjs.majda.cz/
+   */
+  
+  function quote(s) {
+    /*
+     * ECMA-262, 5th ed., 7.8.4: All characters may appear literally in a
+     * string literal except for the closing quote character, backslash,
+     * carriage return, line separator, paragraph separator, and line feed.
+     * Any character may appear in the form of an escape sequence.
+     *
+     * For portability, we also escape escape all control and non-ASCII
+     * characters. Note that "\0" and "\v" escape sequences are not used
+     * because JSHint does not like the first and IE the second.
+     */
+     return '"' + s
+      .replace(/\\/g, '\\\\')  // backslash
+      .replace(/"/g, '\\"')    // closing quote character
+      .replace(/\x08/g, '\\b') // backspace
+      .replace(/\t/g, '\\t')   // horizontal tab
+      .replace(/\n/g, '\\n')   // line feed
+      .replace(/\f/g, '\\f')   // form feed
+      .replace(/\r/g, '\\r')   // carriage return
+      .replace(/[\x00-\x07\x0B\x0E-\x1F\x80-\uFFFF]/g, escape)
+      + '"';
+  }
+  
+  var result = {
+    /*
+     * Parses the input with a generated parser. If the parsing is successfull,
+     * returns a value explicitly or implicitly specified by the grammar from
+     * which the parser was generated (see |PEG.buildParser|). If the parsing is
+     * unsuccessful, throws |PEG.parser.SyntaxError| describing the error.
+     */
+    parse: function(input, startRule) {
+      var parseFunctions = {
+        "uriTemplate": parse_uriTemplate,
+        "expression": parse_expression,
+        "op": parse_op,
+        "pathExpression": parse_pathExpression,
+        "paramList": parse_paramList,
+        "param": parse_param,
+        "cut": parse_cut,
+        "listMarker": parse_listMarker,
+        "substr": parse_substr,
+        "nonexpression": parse_nonexpression,
+        "extension": parse_extension
+      };
+      
+      if (startRule !== undefined) {
+        if (parseFunctions[startRule] === undefined) {
+          throw new Error("Invalid rule name: " + quote(startRule) + ".");
+        }
+      } else {
+        startRule = "uriTemplate";
+      }
+      
+      var pos = 0;
+      var reportFailures = 0;
+      var rightmostFailuresPos = 0;
+      var rightmostFailuresExpected = [];
+      
+      function padLeft(input, padding, length) {
+        var result = input;
+        
+        var padLength = length - input.length;
+        for (var i = 0; i < padLength; i++) {
+          result = padding + result;
+        }
+        
+        return result;
+      }
+      
+      function escape(ch) {
+        var charCode = ch.charCodeAt(0);
+        var escapeChar;
+        var length;
+        
+        if (charCode <= 0xFF) {
+          escapeChar = 'x';
+          length = 2;
+        } else {
+          escapeChar = 'u';
+          length = 4;
+        }
+        
+        return '\\' + escapeChar + padLeft(charCode.toString(16).toUpperCase(), '0', length);
+      }
+      
+      function matchFailed(failure) {
+        if (pos < rightmostFailuresPos) {
+          return;
+        }
+        
+        if (pos > rightmostFailuresPos) {
+          rightmostFailuresPos = pos;
+          rightmostFailuresExpected = [];
+        }
+        
+        rightmostFailuresExpected.push(failure);
+      }
+      
+      function parse_uriTemplate() {
+        var result0, result1;
+        var pos0;
+        
+        pos0 = pos;
+        result0 = [];
+        result1 = parse_nonexpression();
+        if (result1 === null) {
+          result1 = parse_expression();
+        }
+        while (result1 !== null) {
+          result0.push(result1);
+          result1 = parse_nonexpression();
+          if (result1 === null) {
+            result1 = parse_expression();
+          }
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, pieces) { return new Template(pieces) })(pos0, result0);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_expression() {
+        var result0, result1, result2, result3;
+        var pos0, pos1;
+        
+        pos0 = pos;
+        pos1 = pos;
+        if (input.charCodeAt(pos) === 123) {
+          result0 = "{";
+          pos++;
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("\"{\"");
+          }
+        }
+        if (result0 !== null) {
+          result1 = parse_op();
+          if (result1 !== null) {
+            result2 = parse_paramList();
+            if (result2 !== null) {
+              if (input.charCodeAt(pos) === 125) {
+                result3 = "}";
+                pos++;
+              } else {
+                result3 = null;
+                if (reportFailures === 0) {
+                  matchFailed("\"}\"");
+                }
+              }
+              if (result3 !== null) {
+                result0 = [result0, result1, result2, result3];
+              } else {
+                result0 = null;
+                pos = pos1;
+              }
+            } else {
+              result0 = null;
+              pos = pos1;
+            }
+          } else {
+            result0 = null;
+            pos = pos1;
+          }
+        } else {
+          result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, op, params) { return expression(op, params) })(pos0, result0[1], result0[2]);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_op() {
+        var result0;
+        
+        if (/^[\/;:.?&+#]/.test(input.charAt(pos))) {
+          result0 = input.charAt(pos);
+          pos++;
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("[\\/;:.?&+#]");
+          }
+        }
+        if (result0 === null) {
+          result0 = "";
+        }
+        return result0;
+      }
+      
+      function parse_pathExpression() {
+        var result0;
+        
+        if (input.substr(pos, 2) === "{/") {
+          result0 = "{/";
+          pos += 2;
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("\"{/\"");
+          }
+        }
+        return result0;
+      }
+      
+      function parse_paramList() {
+        var result0, result1, result2, result3;
+        var pos0, pos1, pos2, pos3;
+        
+        pos0 = pos;
+        pos1 = pos;
+        result0 = parse_param();
+        if (result0 !== null) {
+          result1 = [];
+          pos2 = pos;
+          pos3 = pos;
+          if (input.charCodeAt(pos) === 44) {
+            result2 = ",";
+            pos++;
+          } else {
+            result2 = null;
+            if (reportFailures === 0) {
+              matchFailed("\",\"");
+            }
+          }
+          if (result2 !== null) {
+            result3 = parse_param();
+            if (result3 !== null) {
+              result2 = [result2, result3];
+            } else {
+              result2 = null;
+              pos = pos3;
+            }
+          } else {
+            result2 = null;
+            pos = pos3;
+          }
+          if (result2 !== null) {
+            result2 = (function(offset, p) { return p; })(pos2, result2[1]);
+          }
+          if (result2 === null) {
+            pos = pos2;
+          }
+          while (result2 !== null) {
+            result1.push(result2);
+            pos2 = pos;
+            pos3 = pos;
+            if (input.charCodeAt(pos) === 44) {
+              result2 = ",";
+              pos++;
+            } else {
+              result2 = null;
+              if (reportFailures === 0) {
+                matchFailed("\",\"");
+              }
+            }
+            if (result2 !== null) {
+              result3 = parse_param();
+              if (result3 !== null) {
+                result2 = [result2, result3];
+              } else {
+                result2 = null;
+                pos = pos3;
+              }
+            } else {
+              result2 = null;
+              pos = pos3;
+            }
+            if (result2 !== null) {
+              result2 = (function(offset, p) { return p; })(pos2, result2[1]);
+            }
+            if (result2 === null) {
+              pos = pos2;
+            }
+          }
+          if (result1 !== null) {
+            result0 = [result0, result1];
+          } else {
+            result0 = null;
+            pos = pos1;
+          }
+        } else {
+          result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, hd, rst) { rst.unshift(hd); return rst; })(pos0, result0[0], result0[1]);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_param() {
+        var result0, result1, result2;
+        var pos0, pos1;
+        
+        pos0 = pos;
+        pos1 = pos;
+        result0 = [];
+        if (/^[a-zA-Z0-9_.%]/.test(input.charAt(pos))) {
+          result1 = input.charAt(pos);
+          pos++;
+        } else {
+          result1 = null;
+          if (reportFailures === 0) {
+            matchFailed("[a-zA-Z0-9_.%]");
+          }
+        }
+        while (result1 !== null) {
+          result0.push(result1);
+          if (/^[a-zA-Z0-9_.%]/.test(input.charAt(pos))) {
+            result1 = input.charAt(pos);
+            pos++;
+          } else {
+            result1 = null;
+            if (reportFailures === 0) {
+              matchFailed("[a-zA-Z0-9_.%]");
+            }
+          }
+        }
+        if (result0 !== null) {
+          result1 = parse_cut();
+          if (result1 === null) {
+            result1 = parse_listMarker();
+          }
+          result1 = result1 !== null ? result1 : "";
+          if (result1 !== null) {
+            result2 = parse_extension();
+            result2 = result2 !== null ? result2 : "";
+            if (result2 !== null) {
+              result0 = [result0, result1, result2];
+            } else {
+              result0 = null;
+              pos = pos1;
+            }
+          } else {
+            result0 = null;
+            pos = pos1;
+          }
+        } else {
+          result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, chars, clm, e) { clm = clm || {};
+              return {
+              name: chars.join(''),
+              explode: clm.listMarker,
+              cut: clm.cut,
+              extended: e
+            } })(pos0, result0[0], result0[1], result0[2]);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_cut() {
+        var result0;
+        var pos0;
+        
+        pos0 = pos;
+        result0 = parse_substr();
+        if (result0 !== null) {
+          result0 = (function(offset, cut) { return {cut: cut}; })(pos0, result0);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_listMarker() {
+        var result0;
+        var pos0;
+        
+        pos0 = pos;
+        if (input.charCodeAt(pos) === 42) {
+          result0 = "*";
+          pos++;
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("\"*\"");
+          }
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, listMarker) { return {listMarker: listMarker}; })(pos0, result0);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_substr() {
+        var result0, result1, result2;
+        var pos0, pos1;
+        
+        pos0 = pos;
+        pos1 = pos;
+        if (input.charCodeAt(pos) === 58) {
+          result0 = ":";
+          pos++;
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("\":\"");
+          }
+        }
+        if (result0 !== null) {
+          if (/^[0-9]/.test(input.charAt(pos))) {
+            result2 = input.charAt(pos);
+            pos++;
+          } else {
+            result2 = null;
+            if (reportFailures === 0) {
+              matchFailed("[0-9]");
+            }
+          }
+          if (result2 !== null) {
+            result1 = [];
+            while (result2 !== null) {
+              result1.push(result2);
+              if (/^[0-9]/.test(input.charAt(pos))) {
+                result2 = input.charAt(pos);
+                pos++;
+              } else {
+                result2 = null;
+                if (reportFailures === 0) {
+                  matchFailed("[0-9]");
+                }
+              }
+            }
+          } else {
+            result1 = null;
+          }
+          if (result1 !== null) {
+            result0 = [result0, result1];
+          } else {
+            result0 = null;
+            pos = pos1;
+          }
+        } else {
+          result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, digits) { return parseInt(digits.join('')) })(pos0, result0[1]);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_nonexpression() {
+        var result0, result1;
+        var pos0;
+        
+        pos0 = pos;
+        if (/^[^{]/.test(input.charAt(pos))) {
+          result1 = input.charAt(pos);
+          pos++;
+        } else {
+          result1 = null;
+          if (reportFailures === 0) {
+            matchFailed("[^{]");
+          }
+        }
+        if (result1 !== null) {
+          result0 = [];
+          while (result1 !== null) {
+            result0.push(result1);
+            if (/^[^{]/.test(input.charAt(pos))) {
+              result1 = input.charAt(pos);
+              pos++;
+            } else {
+              result1 = null;
+              if (reportFailures === 0) {
+                matchFailed("[^{]");
+              }
+            }
+          }
+        } else {
+          result0 = null;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, chars) { return chars.join(''); })(pos0, result0);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      function parse_extension() {
+        var result0, result1, result2;
+        var pos0, pos1;
+        
+        pos0 = pos;
+        pos1 = pos;
+        if (input.charCodeAt(pos) === 40) {
+          result0 = "(";
+          pos++;
+        } else {
+          result0 = null;
+          if (reportFailures === 0) {
+            matchFailed("\"(\"");
+          }
+        }
+        if (result0 !== null) {
+          if (/^[^)]/.test(input.charAt(pos))) {
+            result2 = input.charAt(pos);
+            pos++;
+          } else {
+            result2 = null;
+            if (reportFailures === 0) {
+              matchFailed("[^)]");
+            }
+          }
+          if (result2 !== null) {
+            result1 = [];
+            while (result2 !== null) {
+              result1.push(result2);
+              if (/^[^)]/.test(input.charAt(pos))) {
+                result2 = input.charAt(pos);
+                pos++;
+              } else {
+                result2 = null;
+                if (reportFailures === 0) {
+                  matchFailed("[^)]");
+                }
+              }
+            }
+          } else {
+            result1 = null;
+          }
+          if (result1 !== null) {
+            if (input.charCodeAt(pos) === 41) {
+              result2 = ")";
+              pos++;
+            } else {
+              result2 = null;
+              if (reportFailures === 0) {
+                matchFailed("\")\"");
+              }
+            }
+            if (result2 !== null) {
+              result0 = [result0, result1, result2];
+            } else {
+              result0 = null;
+              pos = pos1;
+            }
+          } else {
+            result0 = null;
+            pos = pos1;
+          }
+        } else {
+          result0 = null;
+          pos = pos1;
+        }
+        if (result0 !== null) {
+          result0 = (function(offset, chars) { return chars.join('') })(pos0, result0[1]);
+        }
+        if (result0 === null) {
+          pos = pos0;
+        }
+        return result0;
+      }
+      
+      
+      function cleanupExpected(expected) {
+        expected.sort();
+        
+        var lastExpected = null;
+        var cleanExpected = [];
+        for (var i = 0; i < expected.length; i++) {
+          if (expected[i] !== lastExpected) {
+            cleanExpected.push(expected[i]);
+            lastExpected = expected[i];
+          }
+        }
+        return cleanExpected;
+      }
+      
+      function computeErrorPosition() {
+        /*
+         * The first idea was to use |String.split| to break the input up to the
+         * error position along newlines and derive the line and column from
+         * there. However IE's |split| implementation is so broken that it was
+         * enough to prevent it.
+         */
+        
+        var line = 1;
+        var column = 1;
+        var seenCR = false;
+        
+        for (var i = 0; i < Math.max(pos, rightmostFailuresPos); i++) {
+          var ch = input.charAt(i);
+          if (ch === "\n") {
+            if (!seenCR) { line++; }
+            column = 1;
+            seenCR = false;
+          } else if (ch === "\r" || ch === "\u2028" || ch === "\u2029") {
+            line++;
+            column = 1;
+            seenCR = true;
+          } else {
+            column++;
+            seenCR = false;
+          }
+        }
+        
+        return { line: line, column: column };
+      }
+      
+      
+          var cls = require('./lib/classes')
+          var Template = cls.Template
+          var expression = cls.expression
+      
+      
+      var result = parseFunctions[startRule]();
+      
+      /*
+       * The parser is now in one of the following three states:
+       *
+       * 1. The parser successfully parsed the whole input.
+       *
+       *    - |result !== null|
+       *    - |pos === input.length|
+       *    - |rightmostFailuresExpected| may or may not contain something
+       *
+       * 2. The parser successfully parsed only a part of the input.
+       *
+       *    - |result !== null|
+       *    - |pos < input.length|
+       *    - |rightmostFailuresExpected| may or may not contain something
+       *
+       * 3. The parser did not successfully parse any part of the input.
+       *
+       *   - |result === null|
+       *   - |pos === 0|
+       *   - |rightmostFailuresExpected| contains at least one failure
+       *
+       * All code following this comment (including called functions) must
+       * handle these states.
+       */
+      if (result === null || pos !== input.length) {
+        var offset = Math.max(pos, rightmostFailuresPos);
+        var found = offset < input.length ? input.charAt(offset) : null;
+        var errorPosition = computeErrorPosition();
+        
+        throw new this.SyntaxError(
+          cleanupExpected(rightmostFailuresExpected),
+          found,
+          offset,
+          errorPosition.line,
+          errorPosition.column
+        );
+      }
+      
+      return result;
+    },
+    
+    /* Returns the parser source code. */
+    toSource: function() { return this._source; }
+  };
+  
+  /* Thrown when a parser encounters a syntax error. */
+  
+  result.SyntaxError = function(expected, found, offset, line, column) {
+    function buildMessage(expected, found) {
+      var expectedHumanized, foundHumanized;
+      
+      switch (expected.length) {
+        case 0:
+          expectedHumanized = "end of input";
+          break;
+        case 1:
+          expectedHumanized = expected[0];
+          break;
+        default:
+          expectedHumanized = expected.slice(0, expected.length - 1).join(", ")
+            + " or "
+            + expected[expected.length - 1];
+      }
+      
+      foundHumanized = found ? quote(found) : "end of input";
+      
+      return "Expected " + expectedHumanized + " but " + foundHumanized + " found.";
+    }
+    
+    this.name = "SyntaxError";
+    this.expected = expected;
+    this.found = found;
+    this.message = buildMessage(expected, found);
+    this.offset = offset;
+    this.line = line;
+    this.column = column;
+  };
+  
+  result.SyntaxError.prototype = Error.prototype;
+  
+  return result;
+})();
+
+},{"./lib/classes":63}],63:[function(require,module,exports){
+// Generated by CoffeeScript 1.6.3
+(function() {
+  var FormContinuationExpression, FormStartExpression, FragmentExpression, LabelExpression, NamedExpression, PathParamExpression, PathSegmentExpression, ReservedExpression, SimpleExpression, Template, encoders, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  encoders = require('./encoders');
+
+  Template = Template = (function() {
+    function Template(pieces) {
+      /*
+      :param pieces: An array of strings and expressions in the order they appear in the template.
+      */
+
+      var i,
+        _this = this;
+      this.expressions = [];
+      this.prefix = 'string' === typeof pieces[0] ? pieces.shift() : '';
+      i = 0;
+      pieces.forEach(function(p) {
+        switch (typeof p) {
+          case 'object':
+            return _this.expressions[i++] = p;
+          case 'string':
+            return _this.expressions[i - 1].suffix = p;
+        }
+      });
+    }
+
+    Template.prototype.expand = function(vars) {
+      return this.prefix + this.expressions.map(function(expr) {
+        return expr.expand(vars);
+      }).join('');
+    };
+
+    Template.prototype.toString = function() {
+      return this.prefix + this.expressions.join('');
+    };
+
+    Template.prototype.toJSON = function() {
+      return this.toString();
+    };
+
+    return Template;
+
+  })();
+
+  SimpleExpression = (function() {
+    var definedPairs;
+
+    SimpleExpression.prototype.first = "";
+
+    SimpleExpression.prototype.sep = ",";
+
+    SimpleExpression.prototype.named = false;
+
+    SimpleExpression.prototype.empty = "";
+
+    SimpleExpression.prototype.allow = "U";
+
+    function SimpleExpression(params) {
+      this.params = params;
+      this.explodeObject = __bind(this.explodeObject, this);
+      this.explodeArray = __bind(this.explodeArray, this);
+      this._expandPair = __bind(this._expandPair, this);
+      this.stringifySingle = __bind(this.stringifySingle, this);
+      this.encode = __bind(this.encode, this);
+      if (this.params == null) {
+        this.params = [];
+      }
+      this.suffix = '';
+    }
+
+    SimpleExpression.prototype.encode = function(string) {
+      /*
+      Encode a string value for the URI
+      */
+
+      return encoders[this.allow](string);
+    };
+
+    SimpleExpression.prototype.stringifySingle = function(param, value) {
+      /*
+      Encode a single value as a string
+      */
+
+      var k, type, v;
+      type = typeof value;
+      if (type === 'string' || type === 'boolean' || type === 'number') {
+        value = value.toString();
+        return this.encode(value.substring(0, param.cut || value.length));
+      } else if (Array.isArray(value)) {
+        if (param.cut) {
+          throw new Error("Prefixed Values do not support lists. Check " + param.name);
+        }
+        return value.map(this.encode).join(',');
+      } else {
+        if (param.cut) {
+          throw new Error("Prefixed Values do not support maps. Check " + param.name);
+        }
+        return ((function() {
+          var _results;
+          _results = [];
+          for (k in value) {
+            v = value[k];
+            _results.push([k, v].map(this.encode).join(','));
+          }
+          return _results;
+        }).call(this)).join(',');
+      }
+    };
+
+    SimpleExpression.prototype.expand = function(vars) {
+      var defined, expanded,
+        _this = this;
+      defined = definedPairs(this.params, vars);
+      expanded = defined.map(function(pair) {
+        return _this._expandPair.apply(_this, pair);
+      }).join(this.sep);
+      if (expanded) {
+        return this.first + expanded + this.suffix;
+      } else {
+        if (this.empty && defined.length) {
+          return this.empty + this.suffix;
+        } else {
+          return this.suffix;
+        }
+      }
+    };
+
+    definedPairs = function(params, vars) {
+      /*
+      Return an array of [key, value] arrays where ``key`` is a parameter name
+      from ``@params`` and ``value`` is the value from vars, when ``value`` is
+      neither undefined nor an empty collection.
+      */
+
+      var _this = this;
+      return params.map(function(p) {
+        return [p, vars[p.name]];
+      }).filter(function(pair) {
+        var k, v, vv;
+        v = pair[1];
+        switch (typeof v) {
+          case "undefined":
+            return false;
+          case "object":
+            if (Array.isArray(v)) {
+              v.length > 0;
+            }
+            for (k in v) {
+              vv = v[k];
+              if (vv) {
+                return true;
+              }
+            }
+            return false;
+          default:
+            return true;
+        }
+      });
+    };
+
+    SimpleExpression.prototype._expandPair = function(param, value) {
+      /*
+      Return the expanded string form of ``pair``.
+      
+      :param pair: A ``[param, value]`` tuple.
+      */
+
+      var name;
+      name = param.name;
+      if (param.explode) {
+        if (Array.isArray(value)) {
+          return this.explodeArray(param, value);
+        } else if (typeof value === 'string') {
+          return this.stringifySingle(param, value);
+        } else {
+          return this.explodeObject(value);
+        }
+      } else {
+        return this.stringifySingle(param, value);
+      }
+    };
+
+    SimpleExpression.prototype.explodeArray = function(param, array) {
+      return array.map(this.encode).join(this.sep);
+    };
+
+    SimpleExpression.prototype.explodeObject = function(object) {
+      var k, pairs, v, vv, _i, _len;
+      pairs = [];
+      for (k in object) {
+        v = object[k];
+        k = this.encode(k);
+        if (Array.isArray(v)) {
+          for (_i = 0, _len = v.length; _i < _len; _i++) {
+            vv = v[_i];
+            pairs.push([k, this.encode(vv)]);
+          }
+        } else {
+          pairs.push([k, this.encode(v)]);
+        }
+      }
+      return pairs.map(function(pair) {
+        return pair.join('=');
+      }).join(this.sep);
+    };
+
+    SimpleExpression.prototype.toString = function() {
+      var params;
+      params = this.params.map(function(p) {
+        return p.name + p.explode;
+      }).join(',');
+      return "{" + this.first + params + "}" + this.suffix;
+    };
+
+    SimpleExpression.prototype.toJSON = function() {
+      return this.toString();
+    };
+
+    return SimpleExpression;
+
+  })();
+
+  NamedExpression = (function(_super) {
+    __extends(NamedExpression, _super);
+
+    function NamedExpression() {
+      this.explodeArray = __bind(this.explodeArray, this);
+      this.stringifySingle = __bind(this.stringifySingle, this);
+      _ref = NamedExpression.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    /*
+    A NamedExpression uses name=value expansions in most cases
+    */
+
+
+    NamedExpression.prototype.stringifySingle = function(param, value) {
+      value = (value = NamedExpression.__super__.stringifySingle.apply(this, arguments)) ? "=" + value : this.empty;
+      return "" + param.name + value;
+    };
+
+    NamedExpression.prototype.explodeArray = function(param, array) {
+      var _this = this;
+      return array.map(function(v) {
+        return "" + param.name + "=" + (_this.encode(v));
+      }).join(this.sep);
+    };
+
+    return NamedExpression;
+
+  })(SimpleExpression);
+
+  ReservedExpression = (function(_super) {
+    __extends(ReservedExpression, _super);
+
+    function ReservedExpression() {
+      _ref1 = ReservedExpression.__super__.constructor.apply(this, arguments);
+      return _ref1;
+    }
+
+    ReservedExpression.prototype.encode = function(string) {
+      return encoders['U+R'](string);
+    };
+
+    ReservedExpression.prototype.toString = function() {
+      return '{+' + (ReservedExpression.__super__.toString.apply(this, arguments)).substring(1);
+    };
+
+    return ReservedExpression;
+
+  })(SimpleExpression);
+
+  FragmentExpression = (function(_super) {
+    __extends(FragmentExpression, _super);
+
+    function FragmentExpression() {
+      _ref2 = FragmentExpression.__super__.constructor.apply(this, arguments);
+      return _ref2;
+    }
+
+    FragmentExpression.prototype.first = '#';
+
+    FragmentExpression.prototype.empty = '#';
+
+    FragmentExpression.prototype.encode = function(string) {
+      return encoders['U+R'](string);
+    };
+
+    return FragmentExpression;
+
+  })(SimpleExpression);
+
+  LabelExpression = (function(_super) {
+    __extends(LabelExpression, _super);
+
+    function LabelExpression() {
+      _ref3 = LabelExpression.__super__.constructor.apply(this, arguments);
+      return _ref3;
+    }
+
+    LabelExpression.prototype.first = '.';
+
+    LabelExpression.prototype.sep = '.';
+
+    LabelExpression.prototype.empty = '.';
+
+    return LabelExpression;
+
+  })(SimpleExpression);
+
+  PathSegmentExpression = (function(_super) {
+    __extends(PathSegmentExpression, _super);
+
+    function PathSegmentExpression() {
+      _ref4 = PathSegmentExpression.__super__.constructor.apply(this, arguments);
+      return _ref4;
+    }
+
+    PathSegmentExpression.prototype.first = '/';
+
+    PathSegmentExpression.prototype.sep = '/';
+
+    return PathSegmentExpression;
+
+  })(SimpleExpression);
+
+  PathParamExpression = (function(_super) {
+    __extends(PathParamExpression, _super);
+
+    function PathParamExpression() {
+      _ref5 = PathParamExpression.__super__.constructor.apply(this, arguments);
+      return _ref5;
+    }
+
+    PathParamExpression.prototype.first = ';';
+
+    PathParamExpression.prototype.sep = ';';
+
+    return PathParamExpression;
+
+  })(NamedExpression);
+
+  FormStartExpression = (function(_super) {
+    __extends(FormStartExpression, _super);
+
+    function FormStartExpression() {
+      _ref6 = FormStartExpression.__super__.constructor.apply(this, arguments);
+      return _ref6;
+    }
+
+    FormStartExpression.prototype.first = '?';
+
+    FormStartExpression.prototype.sep = '&';
+
+    FormStartExpression.prototype.empty = '=';
+
+    return FormStartExpression;
+
+  })(NamedExpression);
+
+  FormContinuationExpression = (function(_super) {
+    __extends(FormContinuationExpression, _super);
+
+    function FormContinuationExpression() {
+      _ref7 = FormContinuationExpression.__super__.constructor.apply(this, arguments);
+      return _ref7;
+    }
+
+    FormContinuationExpression.prototype.first = '&';
+
+    return FormContinuationExpression;
+
+  })(FormStartExpression);
+
+  module.exports = {
+    Template: Template,
+    SimpleExpression: SimpleExpression,
+    NamedExpression: NamedExpression,
+    ReservedExpression: ReservedExpression,
+    FragmentExpression: FragmentExpression,
+    LabelExpression: LabelExpression,
+    PathSegmentExpression: PathSegmentExpression,
+    PathParamExpression: PathParamExpression,
+    FormStartExpression: FormStartExpression,
+    FormContinuationExpression: FormContinuationExpression,
+    expression: function(op, params) {
+      var cls;
+      cls = (function() {
+        switch (op) {
+          case '':
+            return SimpleExpression;
+          case '+':
+            return ReservedExpression;
+          case '#':
+            return FragmentExpression;
+          case '.':
+            return LabelExpression;
+          case '/':
+            return PathSegmentExpression;
+          case ';':
+            return PathParamExpression;
+          case '?':
+            return FormStartExpression;
+          case '&':
+            return FormContinuationExpression;
+        }
+      })();
+      return new cls(params);
+    }
+  };
+
+}).call(this);
+
+},{"./encoders":64}],64:[function(require,module,exports){
+// Generated by CoffeeScript 1.6.3
+(function() {
+  var pctEncode;
+
+  pctEncode = require('pct-encode');
+
+  exports["U"] = pctEncode(/[^\w~.-]/g);
+
+  exports["U+R"] = pctEncode(/[^\w.~:\/\?#\[\]@!\$&'()*+,;=-]/g);
+
+}).call(this);
+
+},{"pct-encode":65}],65:[function(require,module,exports){
+module.exports = function pctEncode(regexp) {
+  regexp = regexp || /\W/g;
+  return function encode(string) {
+    string = String(string);
+    return string.replace(regexp, function (m) {
+      var c = m[0].charCodeAt(0)
+        , encoded = [];
+      if (c < 128) {
+        encoded.push(c);
+      } else if ((128 <= c && c < 2048)) {
+        encoded.push((c >> 6) | 192);
+        encoded.push((c & 63) | 128);
+      } else {
+        encoded.push((c >> 12) | 224);
+        encoded.push(((c >> 6) & 63) | 128);
+        encoded.push((c & 63) | 128);
+      }
+      return encoded.map(function (c) {
+        return '%' + c.toString(16).toUpperCase();
+      }).join('');
+    })
+  }
+}
+
+},{}],66:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5325,8 +6500,8 @@ var HalRequest = (function (_Request) {
                   if (value !== undefined) {
                     return Promise.resolve(value);
                   } else {
-                    return request.findAll().sendRequest().spread(function (res) {
-                      value = res;
+                    return request.findAll().sendRequest().then(function (res) {
+                      value = res.value;
                       return Promise.resolve(value);
                     });
                   }
@@ -5346,7 +6521,7 @@ var HalRequest = (function (_Request) {
 
 exports.HalRequest = HalRequest;
 
-},{"./interceptors/":93,"./populate":96,"vador":50}],88:[function(require,module,exports){
+},{"./interceptors/":72,"./populate":75,"vador":50}],67:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5472,7 +6647,7 @@ var HalResource = (function (_RestResource) {
 
 exports.HalResource = HalResource;
 
-},{"./halRequest":87,"lodash/object/assign":35,"vador":50}],89:[function(require,module,exports){
+},{"./halRequest":66,"lodash/object/assign":35,"vador":50}],68:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5507,22 +6682,9 @@ var HalRestClient = (function (_RestClient) {
   _inherits(HalRestClient, _RestClient);
 
   _createClass(HalRestClient, [{
-    key: 'resource',
-    value: function resource(resourceName) {
-      var config = arguments[1] === undefined ? {} : arguments[1];
-
-      if (!this._cache[resourceName]) {
-        var conf = (0, _lodashObjectAssign2['default'])({}, this._config, config);
-        conf.defaultHeaders = (0, _lodashObjectAssign2['default'])({}, this._headers, config.defaultHeaders || {});
-        conf.interceptors = (config.interceptors || []).concat(this._interceptors);
-        if (!conf.http) {
-          conf.http = this._http;
-        }
-
-        this._cache[resourceName] = new _halResource.HalResource(this._baseUrl, resourceName, conf);
-      }
-
-      return this._cache[resourceName];
+    key: 'instanciateResource',
+    value: function instanciateResource(resourceName, conf) {
+      return new _halResource.HalResource(this._baseUrl, resourceName, conf);
     }
   }]);
 
@@ -5531,7 +6693,7 @@ var HalRestClient = (function (_RestClient) {
 
 exports.HalRestClient = HalRestClient;
 
-},{"./halResource":88,"lodash/object/assign":35,"vador":50}],90:[function(require,module,exports){
+},{"./halResource":67,"lodash/object/assign":35,"vador":50}],69:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5558,7 +6720,7 @@ var _interceptors = require('./interceptors');
 
 _defaults(exports, _interopRequireWildcard(_interceptors));
 
-},{"./halRequest":87,"./halResource":88,"./halRestClient":89,"./interceptors":93}],91:[function(require,module,exports){
+},{"./halRequest":66,"./halResource":67,"./halRestClient":68,"./interceptors":72}],70:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5638,7 +6800,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],92:[function(require,module,exports){
+},{"debug":6,"lodash/object/has":36,"vador":50}],71:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5724,7 +6886,7 @@ var IdExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.IdExtractorInterceptor = IdExtractorInterceptor;
 
-},{"debug":6,"vador":50}],93:[function(require,module,exports){
+},{"debug":6,"vador":50}],72:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5751,7 +6913,7 @@ var _populateInterceptor = require('./populateInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_populateInterceptor));
 
-},{"./embeddedExtractorInterceptor":91,"./idExtractorInterceptor":92,"./linkExtractorInterceptor":94,"./populateInterceptor":95}],94:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":70,"./idExtractorInterceptor":71,"./linkExtractorInterceptor":73,"./populateInterceptor":74}],73:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5882,7 +7044,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],95:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],74:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5992,7 +7154,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
 
 exports.PopulateInterceptor = PopulateInterceptor;
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],96:[function(require,module,exports){
+},{"debug":6,"lodash/object/has":36,"vador":50}],75:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6083,5 +7245,5 @@ var Populate = (function () {
 
 exports.Populate = Populate;
 
-},{"lodash/lang/isObject":34,"lodash/object/set":39}]},{},[90])(90)
+},{"lodash/lang/isObject":34,"lodash/object/set":39}]},{},[69])(69)
 });

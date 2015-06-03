@@ -32,22 +32,9 @@ var HalRestClient = (function (_RestClient) {
   _inherits(HalRestClient, _RestClient);
 
   _createClass(HalRestClient, [{
-    key: 'resource',
-    value: function resource(resourceName) {
-      var config = arguments[1] === undefined ? {} : arguments[1];
-
-      if (!this._cache[resourceName]) {
-        var conf = (0, _lodashObjectAssign2['default'])({}, this._config, config);
-        conf.defaultHeaders = (0, _lodashObjectAssign2['default'])({}, this._headers, config.defaultHeaders || {});
-        conf.interceptors = (config.interceptors || []).concat(this._interceptors);
-        if (!conf.http) {
-          conf.http = this._http;
-        }
-
-        this._cache[resourceName] = new _halResource.HalResource(this._baseUrl, resourceName, conf);
-      }
-
-      return this._cache[resourceName];
+    key: 'instanciateResource',
+    value: function instanciateResource(resourceName, conf) {
+      return new _halResource.HalResource(this._baseUrl, resourceName, conf);
     }
   }]);
 

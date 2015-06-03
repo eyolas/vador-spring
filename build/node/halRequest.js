@@ -83,8 +83,8 @@ var HalRequest = (function (_Request) {
                   if (value !== undefined) {
                     return Promise.resolve(value);
                   } else {
-                    return request.findAll().sendRequest().spread(function (res) {
-                      value = res;
+                    return request.findAll().sendRequest().then(function (res) {
+                      value = res.value;
                       return Promise.resolve(value);
                     });
                   }
