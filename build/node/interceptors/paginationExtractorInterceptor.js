@@ -26,44 +26,40 @@ var _debug2 = _interopRequireDefault(_debug);
 
 var debug = new _debug2['default']('halClient [Interceptor]');
 
-var EMBEDDED = '_embedded';
+var PAGE = 'page';
 
-var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
-  function EmbeddedExtractorInterceptor(tagEmbedded) {
-    _classCallCheck(this, EmbeddedExtractorInterceptor);
+var PaginationExtractorInterceptor = (function (_ResponseInterceptor) {
+  function PaginationExtractorInterceptor(tagPage) {
+    _classCallCheck(this, PaginationExtractorInterceptor);
 
-    _get(Object.getPrototypeOf(EmbeddedExtractorInterceptor.prototype), 'constructor', this).call(this);
-    this.tagEmbedded = tagEmbedded || EMBEDDED;
+    _get(Object.getPrototypeOf(PaginationExtractorInterceptor.prototype), 'constructor', this).call(this);
+    this.tagPage = tagPage || PAGE;
   }
 
-  _inherits(EmbeddedExtractorInterceptor, _ResponseInterceptor);
+  _inherits(PaginationExtractorInterceptor, _ResponseInterceptor);
 
-  _createClass(EmbeddedExtractorInterceptor, [{
+  _createClass(PaginationExtractorInterceptor, [{
     key: 'response',
     value: function response(_response) {
-      debug('embedded extractor start');
+      debug('pagination extractor start');
       var value = _response.value;
       var request = _response.request;
 
-      if (request.responseType === Array) {
-        if ((0, _lodashObjectHas2['default'])(value, '' + this.tagEmbedded + '.' + request.resourceName)) {
-          value = value[this.tagEmbedded][request.resourceName];
-        }
+      if (((0, _lodashObjectHas2['default'])(value), this.tagPage)) {
+        _response.page = value.page;
       }
 
-      _response.value = value;
-
-      debug('embedded extractor end');
+      debug('pagination extractor end');
       return _response;
     }
   }, {
     key: 'responseError',
     value: function responseError(error) {
-      console.error('embedded extractor responseError', error);
+      console.error('pagination extractor responseError', error);
     }
   }]);
 
-  return EmbeddedExtractorInterceptor;
+  return PaginationExtractorInterceptor;
 })(_vador.ResponseInterceptor);
 
-exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
+exports.PaginationExtractorInterceptor = PaginationExtractorInterceptor;

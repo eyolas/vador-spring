@@ -23,3 +23,7 @@ _defaults(exports, _interopRequireWildcard(_embeddedExtractorInterceptor));
 var _populateInterceptor = require('./populateInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_populateInterceptor));
+
+var _paginationExtractorInterceptor = require('./paginationExtractorInterceptor');
+
+_defaults(exports, _interopRequireWildcard(_paginationExtractorInterceptor));

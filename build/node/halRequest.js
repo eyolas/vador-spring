@@ -30,7 +30,7 @@ var HalRequest = (function (_Request) {
     this._restKeys.push('**links**', '**selfLink**', '**hasLinks**');
 
     //internal interceptors
-    var interceptors = [new _interceptors.EmbeddedExtractorInterceptor(), new _interceptors.LinkExtractorInterceptor(), new _interceptors.IdExtractorInterceptor(), new _interceptors.PopulateInterceptor()];
+    var interceptors = [new _interceptors.PaginationExtractorInterceptor(), new _interceptors.EmbeddedExtractorInterceptor(), new _interceptors.LinkExtractorInterceptor(), new _interceptors.IdExtractorInterceptor(), new _interceptors.PopulateInterceptor()];
 
     this._interceptors = interceptors.concat(this._interceptors);
   }
