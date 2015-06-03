@@ -3894,7 +3894,7 @@ var Http = (function () {
 })();
 
 exports.Http = Http;
-},{"./utils":45,"superagent-es6-promise":46}],40:[function(require,module,exports){
+},{"./utils":45,"superagent-es6-promise":71}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3929,15 +3929,9 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _utils = require('./utils');
-
-var _normalizeUrl = require('normalize-url');
-
-var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
 
 var _response = require('./response');
 
@@ -3970,10 +3964,10 @@ var Request = (function () {
   _createClass(Request, [{
     key: 'url',
     set: function (url) {
-      this._url = (0, _normalizeUrl2['default'])(url);
+      this._url = (0, _utils.normalizeUrl)(url);
     },
     get: function () {
-      return (0, _normalizeUrl2['default'])(this._url);
+      return (0, _utils.normalizeUrl)(this._url);
     }
   }, {
     key: 'addInterceptor',
@@ -4133,7 +4127,7 @@ var Request = (function () {
 })();
 
 exports.Request = Request;
-},{"../core/baseInterceptors/":35,"./response":42,"./utils":45,"normalize-url":30}],42:[function(require,module,exports){
+},{"../core/baseInterceptors/":35,"./response":42,"./utils":45}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -4146,9 +4140,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _lodashIsobject = require('lodash.isobject');
+var _lodashLangIsObject = require('lodash/lang/isObject');
 
-var _lodashIsobject2 = _interopRequireDefault(_lodashIsobject);
+var _lodashLangIsObject2 = _interopRequireDefault(_lodashLangIsObject);
 
 var Response = (function () {
   function Response(value, result, request) {
@@ -4162,7 +4156,7 @@ var Response = (function () {
   _createClass(Response, [{
     key: 'hasValue',
     value: function hasValue() {
-      return Array.isArray(this.value) || (0, _lodashIsobject2['default'])(this.value);
+      return Array.isArray(this.value) || (0, _lodashLangIsObject2['default'])(this.value);
     }
   }]);
 
@@ -4170,7 +4164,7 @@ var Response = (function () {
 })();
 
 exports.Response = Response;
-},{"lodash.isobject":26}],43:[function(require,module,exports){
+},{"lodash/lang/isObject":65}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -4187,9 +4181,9 @@ var _http = require('./http');
 
 var _restResource = require('./restResource');
 
-var _lodashAssign = require('lodash.assign');
+var _lodashObjectAssign = require('lodash/object/assign');
 
-var _lodashAssign2 = _interopRequireDefault(_lodashAssign);
+var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 
 var RestClient = (function () {
   function RestClient(baseUrl) {
@@ -4237,8 +4231,8 @@ var RestClient = (function () {
       var config = arguments[1] === undefined ? {} : arguments[1];
 
       if (!this._cache[resourceName]) {
-        var conf = (0, _lodashAssign2['default'])({}, this._config, config);
-        conf.defaultHeaders = (0, _lodashAssign2['default'])({}, this._headers, config.defaultHeaders || {});
+        var conf = (0, _lodashObjectAssign2['default'])({}, this._config, config);
+        conf.defaultHeaders = (0, _lodashObjectAssign2['default'])({}, this._headers, config.defaultHeaders || {});
         conf.interceptors = (config.interceptors || []).concat(this._interceptors);
         if (!conf.http) {
           conf.http = this._http;
@@ -4255,7 +4249,7 @@ var RestClient = (function () {
 })();
 
 exports.RestClient = RestClient;
-},{"./http":39,"./restResource":44,"lodash.assign":9}],44:[function(require,module,exports){
+},{"./http":39,"./restResource":44,"lodash/object/assign":66}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -4347,17 +4341,865 @@ var RestResource = (function () {
 
 exports.RestResource = RestResource;
 },{"./http":39,"./request":41}],45:[function(require,module,exports){
-"use strict";
+'use strict';
 
-Object.defineProperty(exports, "__esModule", {
+Object.defineProperty(exports, '__esModule', {
   value: true
 });
 exports.isNotEmpty = isNotEmpty;
+exports.normalizeUrl = normalizeUrl;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _normalizeUrl = require('normalize-url');
+
+var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
+
+var IS_ABSOLUTE = /^http.*/;
 
 function isNotEmpty(arr) {
   return arr && Array.isArray(arr) && arr.length;
 }
-},{}],46:[function(require,module,exports){
+
+function normalizeUrl(url) {
+  if (!IS_ABSOLUTE.test(url)) {
+    return (0, _normalizeUrl2['default'])(url).replace('http://', '');
+  } else {
+    return (0, _normalizeUrl2['default'])(url);
+  }
+}
+},{"normalize-url":30}],46:[function(require,module,exports){
+/** Used as the `TypeError` message for "Functions" methods. */
+var FUNC_ERROR_TEXT = 'Expected a function';
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeMax = Math.max;
+
+/**
+ * Creates a function that invokes `func` with the `this` binding of the
+ * created function and arguments from `start` and beyond provided as an array.
+ *
+ * **Note:** This method is based on the [rest parameter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters).
+ *
+ * @static
+ * @memberOf _
+ * @category Function
+ * @param {Function} func The function to apply a rest parameter to.
+ * @param {number} [start=func.length-1] The start position of the rest parameter.
+ * @returns {Function} Returns the new function.
+ * @example
+ *
+ * var say = _.restParam(function(what, names) {
+ *   return what + ' ' + _.initial(names).join(', ') +
+ *     (_.size(names) > 1 ? ', & ' : '') + _.last(names);
+ * });
+ *
+ * say('hello', 'fred', 'barney', 'pebbles');
+ * // => 'hello fred, barney, & pebbles'
+ */
+function restParam(func, start) {
+  if (typeof func != 'function') {
+    throw new TypeError(FUNC_ERROR_TEXT);
+  }
+  start = nativeMax(start === undefined ? (func.length - 1) : (+start || 0), 0);
+  return function() {
+    var args = arguments,
+        index = -1,
+        length = nativeMax(args.length - start, 0),
+        rest = Array(length);
+
+    while (++index < length) {
+      rest[index] = args[start + index];
+    }
+    switch (start) {
+      case 0: return func.call(this, rest);
+      case 1: return func.call(this, args[0], rest);
+      case 2: return func.call(this, args[0], args[1], rest);
+    }
+    var otherArgs = Array(start + 1);
+    index = -1;
+    while (++index < start) {
+      otherArgs[index] = args[index];
+    }
+    otherArgs[start] = rest;
+    return func.apply(this, otherArgs);
+  };
+}
+
+module.exports = restParam;
+
+},{}],47:[function(require,module,exports){
+var keys = require('../object/keys');
+
+/**
+ * A specialized version of `_.assign` for customizing assigned values without
+ * support for argument juggling, multiple sources, and `this` binding `customizer`
+ * functions.
+ *
+ * @private
+ * @param {Object} object The destination object.
+ * @param {Object} source The source object.
+ * @param {Function} customizer The function to customize assigned values.
+ * @returns {Object} Returns `object`.
+ */
+function assignWith(object, source, customizer) {
+  var index = -1,
+      props = keys(source),
+      length = props.length;
+
+  while (++index < length) {
+    var key = props[index],
+        value = object[key],
+        result = customizer(value, source[key], key, object, source);
+
+    if ((result === result ? (result !== value) : (value === value)) ||
+        (value === undefined && !(key in object))) {
+      object[key] = result;
+    }
+  }
+  return object;
+}
+
+module.exports = assignWith;
+
+},{"../object/keys":67}],48:[function(require,module,exports){
+var baseCopy = require('./baseCopy'),
+    keys = require('../object/keys');
+
+/**
+ * The base implementation of `_.assign` without support for argument juggling,
+ * multiple sources, and `customizer` functions.
+ *
+ * @private
+ * @param {Object} object The destination object.
+ * @param {Object} source The source object.
+ * @returns {Object} Returns `object`.
+ */
+function baseAssign(object, source) {
+  return source == null
+    ? object
+    : baseCopy(source, keys(source), object);
+}
+
+module.exports = baseAssign;
+
+},{"../object/keys":67,"./baseCopy":49}],49:[function(require,module,exports){
+/**
+ * Copies properties of `source` to `object`.
+ *
+ * @private
+ * @param {Object} source The object to copy properties from.
+ * @param {Array} props The property names to copy.
+ * @param {Object} [object={}] The object to copy properties to.
+ * @returns {Object} Returns `object`.
+ */
+function baseCopy(source, props, object) {
+  object || (object = {});
+
+  var index = -1,
+      length = props.length;
+
+  while (++index < length) {
+    var key = props[index];
+    object[key] = source[key];
+  }
+  return object;
+}
+
+module.exports = baseCopy;
+
+},{}],50:[function(require,module,exports){
+/**
+ * The base implementation of `_.property` without support for deep paths.
+ *
+ * @private
+ * @param {string} key The key of the property to get.
+ * @returns {Function} Returns the new function.
+ */
+function baseProperty(key) {
+  return function(object) {
+    return object == null ? undefined : object[key];
+  };
+}
+
+module.exports = baseProperty;
+
+},{}],51:[function(require,module,exports){
+/**
+ * Converts `value` to a string if it's not one. An empty string is returned
+ * for `null` or `undefined` values.
+ *
+ * @private
+ * @param {*} value The value to process.
+ * @returns {string} Returns the string.
+ */
+function baseToString(value) {
+  if (typeof value == 'string') {
+    return value;
+  }
+  return value == null ? '' : (value + '');
+}
+
+module.exports = baseToString;
+
+},{}],52:[function(require,module,exports){
+var identity = require('../utility/identity');
+
+/**
+ * A specialized version of `baseCallback` which only supports `this` binding
+ * and specifying the number of arguments to provide to `func`.
+ *
+ * @private
+ * @param {Function} func The function to bind.
+ * @param {*} thisArg The `this` binding of `func`.
+ * @param {number} [argCount] The number of arguments to provide to `func`.
+ * @returns {Function} Returns the callback.
+ */
+function bindCallback(func, thisArg, argCount) {
+  if (typeof func != 'function') {
+    return identity;
+  }
+  if (thisArg === undefined) {
+    return func;
+  }
+  switch (argCount) {
+    case 1: return function(value) {
+      return func.call(thisArg, value);
+    };
+    case 3: return function(value, index, collection) {
+      return func.call(thisArg, value, index, collection);
+    };
+    case 4: return function(accumulator, value, index, collection) {
+      return func.call(thisArg, accumulator, value, index, collection);
+    };
+    case 5: return function(value, other, key, object, source) {
+      return func.call(thisArg, value, other, key, object, source);
+    };
+  }
+  return function() {
+    return func.apply(thisArg, arguments);
+  };
+}
+
+module.exports = bindCallback;
+
+},{"../utility/identity":70}],53:[function(require,module,exports){
+var bindCallback = require('./bindCallback'),
+    isIterateeCall = require('./isIterateeCall'),
+    restParam = require('../function/restParam');
+
+/**
+ * Creates a function that assigns properties of source object(s) to a given
+ * destination object.
+ *
+ * **Note:** This function is used to create `_.assign`, `_.defaults`, and `_.merge`.
+ *
+ * @private
+ * @param {Function} assigner The function to assign values.
+ * @returns {Function} Returns the new assigner function.
+ */
+function createAssigner(assigner) {
+  return restParam(function(object, sources) {
+    var index = -1,
+        length = object == null ? 0 : sources.length,
+        customizer = length > 2 ? sources[length - 2] : undefined,
+        guard = length > 2 ? sources[2] : undefined,
+        thisArg = length > 1 ? sources[length - 1] : undefined;
+
+    if (typeof customizer == 'function') {
+      customizer = bindCallback(customizer, thisArg, 5);
+      length -= 2;
+    } else {
+      customizer = typeof thisArg == 'function' ? thisArg : undefined;
+      length -= (customizer ? 1 : 0);
+    }
+    if (guard && isIterateeCall(sources[0], sources[1], guard)) {
+      customizer = length < 3 ? undefined : customizer;
+      length = 1;
+    }
+    while (++index < length) {
+      var source = sources[index];
+      if (source) {
+        assigner(object, source, customizer);
+      }
+    }
+    return object;
+  });
+}
+
+module.exports = createAssigner;
+
+},{"../function/restParam":46,"./bindCallback":52,"./isIterateeCall":58}],54:[function(require,module,exports){
+var baseProperty = require('./baseProperty');
+
+/**
+ * Gets the "length" property value of `object`.
+ *
+ * **Note:** This function is used to avoid a [JIT bug](https://bugs.webkit.org/show_bug.cgi?id=142792)
+ * that affects Safari on at least iOS 8.1-8.3 ARM64.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @returns {*} Returns the "length" value.
+ */
+var getLength = baseProperty('length');
+
+module.exports = getLength;
+
+},{"./baseProperty":50}],55:[function(require,module,exports){
+var isNative = require('../lang/isNative');
+
+/**
+ * Gets the native function at `key` of `object`.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @param {string} key The key of the method to get.
+ * @returns {*} Returns the function if it's native, else `undefined`.
+ */
+function getNative(object, key) {
+  var value = object == null ? undefined : object[key];
+  return isNative(value) ? value : undefined;
+}
+
+module.exports = getNative;
+
+},{"../lang/isNative":64}],56:[function(require,module,exports){
+var getLength = require('./getLength'),
+    isLength = require('./isLength');
+
+/**
+ * Checks if `value` is array-like.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is array-like, else `false`.
+ */
+function isArrayLike(value) {
+  return value != null && isLength(getLength(value));
+}
+
+module.exports = isArrayLike;
+
+},{"./getLength":54,"./isLength":59}],57:[function(require,module,exports){
+/** Used to detect unsigned integer values. */
+var reIsUint = /^\d+$/;
+
+/**
+ * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
+ * of an array-like value.
+ */
+var MAX_SAFE_INTEGER = 9007199254740991;
+
+/**
+ * Checks if `value` is a valid array-like index.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @param {number} [length=MAX_SAFE_INTEGER] The upper bounds of a valid index.
+ * @returns {boolean} Returns `true` if `value` is a valid index, else `false`.
+ */
+function isIndex(value, length) {
+  value = (typeof value == 'number' || reIsUint.test(value)) ? +value : -1;
+  length = length == null ? MAX_SAFE_INTEGER : length;
+  return value > -1 && value % 1 == 0 && value < length;
+}
+
+module.exports = isIndex;
+
+},{}],58:[function(require,module,exports){
+var isArrayLike = require('./isArrayLike'),
+    isIndex = require('./isIndex'),
+    isObject = require('../lang/isObject');
+
+/**
+ * Checks if the provided arguments are from an iteratee call.
+ *
+ * @private
+ * @param {*} value The potential iteratee value argument.
+ * @param {*} index The potential iteratee index or key argument.
+ * @param {*} object The potential iteratee object argument.
+ * @returns {boolean} Returns `true` if the arguments are from an iteratee call, else `false`.
+ */
+function isIterateeCall(value, index, object) {
+  if (!isObject(object)) {
+    return false;
+  }
+  var type = typeof index;
+  if (type == 'number'
+      ? (isArrayLike(object) && isIndex(index, object.length))
+      : (type == 'string' && index in object)) {
+    var other = object[index];
+    return value === value ? (value === other) : (other !== other);
+  }
+  return false;
+}
+
+module.exports = isIterateeCall;
+
+},{"../lang/isObject":65,"./isArrayLike":56,"./isIndex":57}],59:[function(require,module,exports){
+/**
+ * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
+ * of an array-like value.
+ */
+var MAX_SAFE_INTEGER = 9007199254740991;
+
+/**
+ * Checks if `value` is a valid array-like length.
+ *
+ * **Note:** This function is based on [`ToLength`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-tolength).
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a valid length, else `false`.
+ */
+function isLength(value) {
+  return typeof value == 'number' && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
+}
+
+module.exports = isLength;
+
+},{}],60:[function(require,module,exports){
+/**
+ * Checks if `value` is object-like.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+ */
+function isObjectLike(value) {
+  return !!value && typeof value == 'object';
+}
+
+module.exports = isObjectLike;
+
+},{}],61:[function(require,module,exports){
+var isArguments = require('../lang/isArguments'),
+    isArray = require('../lang/isArray'),
+    isIndex = require('./isIndex'),
+    isLength = require('./isLength'),
+    keysIn = require('../object/keysIn');
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * A fallback implementation of `Object.keys` which creates an array of the
+ * own enumerable property names of `object`.
+ *
+ * @private
+ * @param {Object} object The object to query.
+ * @returns {Array} Returns the array of property names.
+ */
+function shimKeys(object) {
+  var props = keysIn(object),
+      propsLength = props.length,
+      length = propsLength && object.length;
+
+  var allowIndexes = !!length && isLength(length) &&
+    (isArray(object) || isArguments(object));
+
+  var index = -1,
+      result = [];
+
+  while (++index < propsLength) {
+    var key = props[index];
+    if ((allowIndexes && isIndex(key, length)) || hasOwnProperty.call(object, key)) {
+      result.push(key);
+    }
+  }
+  return result;
+}
+
+module.exports = shimKeys;
+
+},{"../lang/isArguments":62,"../lang/isArray":63,"../object/keysIn":68,"./isIndex":57,"./isLength":59}],62:[function(require,module,exports){
+var isArrayLike = require('../internal/isArrayLike'),
+    isObjectLike = require('../internal/isObjectLike');
+
+/** `Object#toString` result references. */
+var argsTag = '[object Arguments]';
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * of values.
+ */
+var objToString = objectProto.toString;
+
+/**
+ * Checks if `value` is classified as an `arguments` object.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+ * @example
+ *
+ * _.isArguments(function() { return arguments; }());
+ * // => true
+ *
+ * _.isArguments([1, 2, 3]);
+ * // => false
+ */
+function isArguments(value) {
+  return isObjectLike(value) && isArrayLike(value) && objToString.call(value) == argsTag;
+}
+
+module.exports = isArguments;
+
+},{"../internal/isArrayLike":56,"../internal/isObjectLike":60}],63:[function(require,module,exports){
+var getNative = require('../internal/getNative'),
+    isLength = require('../internal/isLength'),
+    isObjectLike = require('../internal/isObjectLike');
+
+/** `Object#toString` result references. */
+var arrayTag = '[object Array]';
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * of values.
+ */
+var objToString = objectProto.toString;
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeIsArray = getNative(Array, 'isArray');
+
+/**
+ * Checks if `value` is classified as an `Array` object.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+ * @example
+ *
+ * _.isArray([1, 2, 3]);
+ * // => true
+ *
+ * _.isArray(function() { return arguments; }());
+ * // => false
+ */
+var isArray = nativeIsArray || function(value) {
+  return isObjectLike(value) && isLength(value.length) && objToString.call(value) == arrayTag;
+};
+
+module.exports = isArray;
+
+},{"../internal/getNative":55,"../internal/isLength":59,"../internal/isObjectLike":60}],64:[function(require,module,exports){
+var escapeRegExp = require('../string/escapeRegExp'),
+    isObjectLike = require('../internal/isObjectLike');
+
+/** `Object#toString` result references. */
+var funcTag = '[object Function]';
+
+/** Used to detect host constructors (Safari > 5). */
+var reIsHostCtor = /^\[object .+?Constructor\]$/;
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/** Used to resolve the decompiled source of functions. */
+var fnToString = Function.prototype.toString;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * of values.
+ */
+var objToString = objectProto.toString;
+
+/** Used to detect if a method is native. */
+var reIsNative = RegExp('^' +
+  escapeRegExp(fnToString.call(hasOwnProperty))
+  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
+);
+
+/**
+ * Checks if `value` is a native function.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a native function, else `false`.
+ * @example
+ *
+ * _.isNative(Array.prototype.push);
+ * // => true
+ *
+ * _.isNative(_);
+ * // => false
+ */
+function isNative(value) {
+  if (value == null) {
+    return false;
+  }
+  if (objToString.call(value) == funcTag) {
+    return reIsNative.test(fnToString.call(value));
+  }
+  return isObjectLike(value) && reIsHostCtor.test(value);
+}
+
+module.exports = isNative;
+
+},{"../internal/isObjectLike":60,"../string/escapeRegExp":69}],65:[function(require,module,exports){
+/**
+ * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
+ * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+ * @example
+ *
+ * _.isObject({});
+ * // => true
+ *
+ * _.isObject([1, 2, 3]);
+ * // => true
+ *
+ * _.isObject(1);
+ * // => false
+ */
+function isObject(value) {
+  // Avoid a V8 JIT bug in Chrome 19-20.
+  // See https://code.google.com/p/v8/issues/detail?id=2291 for more details.
+  var type = typeof value;
+  return !!value && (type == 'object' || type == 'function');
+}
+
+module.exports = isObject;
+
+},{}],66:[function(require,module,exports){
+var assignWith = require('../internal/assignWith'),
+    baseAssign = require('../internal/baseAssign'),
+    createAssigner = require('../internal/createAssigner');
+
+/**
+ * Assigns own enumerable properties of source object(s) to the destination
+ * object. Subsequent sources overwrite property assignments of previous sources.
+ * If `customizer` is provided it is invoked to produce the assigned values.
+ * The `customizer` is bound to `thisArg` and invoked with five arguments:
+ * (objectValue, sourceValue, key, object, source).
+ *
+ * **Note:** This method mutates `object` and is based on
+ * [`Object.assign`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.assign).
+ *
+ * @static
+ * @memberOf _
+ * @alias extend
+ * @category Object
+ * @param {Object} object The destination object.
+ * @param {...Object} [sources] The source objects.
+ * @param {Function} [customizer] The function to customize assigned values.
+ * @param {*} [thisArg] The `this` binding of `customizer`.
+ * @returns {Object} Returns `object`.
+ * @example
+ *
+ * _.assign({ 'user': 'barney' }, { 'age': 40 }, { 'user': 'fred' });
+ * // => { 'user': 'fred', 'age': 40 }
+ *
+ * // using a customizer callback
+ * var defaults = _.partialRight(_.assign, function(value, other) {
+ *   return _.isUndefined(value) ? other : value;
+ * });
+ *
+ * defaults({ 'user': 'barney' }, { 'age': 36 }, { 'user': 'fred' });
+ * // => { 'user': 'barney', 'age': 36 }
+ */
+var assign = createAssigner(function(object, source, customizer) {
+  return customizer
+    ? assignWith(object, source, customizer)
+    : baseAssign(object, source);
+});
+
+module.exports = assign;
+
+},{"../internal/assignWith":47,"../internal/baseAssign":48,"../internal/createAssigner":53}],67:[function(require,module,exports){
+var getNative = require('../internal/getNative'),
+    isArrayLike = require('../internal/isArrayLike'),
+    isObject = require('../lang/isObject'),
+    shimKeys = require('../internal/shimKeys');
+
+/* Native method references for those with the same name as other `lodash` methods. */
+var nativeKeys = getNative(Object, 'keys');
+
+/**
+ * Creates an array of the own enumerable property names of `object`.
+ *
+ * **Note:** Non-object values are coerced to objects. See the
+ * [ES spec](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.keys)
+ * for more details.
+ *
+ * @static
+ * @memberOf _
+ * @category Object
+ * @param {Object} object The object to query.
+ * @returns {Array} Returns the array of property names.
+ * @example
+ *
+ * function Foo() {
+ *   this.a = 1;
+ *   this.b = 2;
+ * }
+ *
+ * Foo.prototype.c = 3;
+ *
+ * _.keys(new Foo);
+ * // => ['a', 'b'] (iteration order is not guaranteed)
+ *
+ * _.keys('hi');
+ * // => ['0', '1']
+ */
+var keys = !nativeKeys ? shimKeys : function(object) {
+  var Ctor = object == null ? null : object.constructor;
+  if ((typeof Ctor == 'function' && Ctor.prototype === object) ||
+      (typeof object != 'function' && isArrayLike(object))) {
+    return shimKeys(object);
+  }
+  return isObject(object) ? nativeKeys(object) : [];
+};
+
+module.exports = keys;
+
+},{"../internal/getNative":55,"../internal/isArrayLike":56,"../internal/shimKeys":61,"../lang/isObject":65}],68:[function(require,module,exports){
+var isArguments = require('../lang/isArguments'),
+    isArray = require('../lang/isArray'),
+    isIndex = require('../internal/isIndex'),
+    isLength = require('../internal/isLength'),
+    isObject = require('../lang/isObject');
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/**
+ * Creates an array of the own and inherited enumerable property names of `object`.
+ *
+ * **Note:** Non-object values are coerced to objects.
+ *
+ * @static
+ * @memberOf _
+ * @category Object
+ * @param {Object} object The object to query.
+ * @returns {Array} Returns the array of property names.
+ * @example
+ *
+ * function Foo() {
+ *   this.a = 1;
+ *   this.b = 2;
+ * }
+ *
+ * Foo.prototype.c = 3;
+ *
+ * _.keysIn(new Foo);
+ * // => ['a', 'b', 'c'] (iteration order is not guaranteed)
+ */
+function keysIn(object) {
+  if (object == null) {
+    return [];
+  }
+  if (!isObject(object)) {
+    object = Object(object);
+  }
+  var length = object.length;
+  length = (length && isLength(length) &&
+    (isArray(object) || isArguments(object)) && length) || 0;
+
+  var Ctor = object.constructor,
+      index = -1,
+      isProto = typeof Ctor == 'function' && Ctor.prototype === object,
+      result = Array(length),
+      skipIndexes = length > 0;
+
+  while (++index < length) {
+    result[index] = (index + '');
+  }
+  for (var key in object) {
+    if (!(skipIndexes && isIndex(key, length)) &&
+        !(key == 'constructor' && (isProto || !hasOwnProperty.call(object, key)))) {
+      result.push(key);
+    }
+  }
+  return result;
+}
+
+module.exports = keysIn;
+
+},{"../internal/isIndex":57,"../internal/isLength":59,"../lang/isArguments":62,"../lang/isArray":63,"../lang/isObject":65}],69:[function(require,module,exports){
+var baseToString = require('../internal/baseToString');
+
+/**
+ * Used to match `RegExp` [special characters](http://www.regular-expressions.info/characters.html#special).
+ * In addition to special characters the forward slash is escaped to allow for
+ * easier `eval` use and `Function` compilation.
+ */
+var reRegExpChars = /[.*+?^${}()|[\]\/\\]/g,
+    reHasRegExpChars = RegExp(reRegExpChars.source);
+
+/**
+ * Escapes the `RegExp` special characters "\", "/", "^", "$", ".", "|", "?",
+ * "*", "+", "(", ")", "[", "]", "{" and "}" in `string`.
+ *
+ * @static
+ * @memberOf _
+ * @category String
+ * @param {string} [string=''] The string to escape.
+ * @returns {string} Returns the escaped string.
+ * @example
+ *
+ * _.escapeRegExp('[lodash](https://lodash.com/)');
+ * // => '\[lodash\]\(https:\/\/lodash\.com\/\)'
+ */
+function escapeRegExp(string) {
+  string = baseToString(string);
+  return (string && reHasRegExpChars.test(string))
+    ? string.replace(reRegExpChars, '\\$&')
+    : string;
+}
+
+module.exports = escapeRegExp;
+
+},{"../internal/baseToString":51}],70:[function(require,module,exports){
+/**
+ * This method returns the first argument provided to it.
+ *
+ * @static
+ * @memberOf _
+ * @category Utility
+ * @param {*} value Any value.
+ * @returns {*} Returns `value`.
+ * @example
+ *
+ * var object = { 'user': 'fred' };
+ *
+ * _.identity(object) === object;
+ * // => true
+ */
+function identity(value) {
+  return value;
+}
+
+module.exports = identity;
+
+},{}],71:[function(require,module,exports){
 // So you can `var request = require("superagent-es6-promise")`
 var superagent = module.exports = require("superagent");
 var Request = superagent.Request;
@@ -4424,7 +5266,7 @@ Request.prototype.then = function() {
   return promise.then.apply(promise, arguments);
 };
 
-},{"superagent":47}],47:[function(require,module,exports){
+},{"superagent":72}],72:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -5549,7 +6391,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":48,"reduce":49}],48:[function(require,module,exports){
+},{"emitter":73,"reduce":74}],73:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -5715,7 +6557,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],49:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -5740,7 +6582,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],50:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5847,7 +6689,7 @@ var HalRequest = (function (_Request) {
 
 exports.HalRequest = HalRequest;
 
-},{"./interceptors/":56,"./populate":59,"vador":38}],51:[function(require,module,exports){
+},{"./interceptors/":81,"./populate":84,"vador":38}],76:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5973,7 +6815,7 @@ var HalResource = (function (_RestResource) {
 
 exports.HalResource = HalResource;
 
-},{"./halRequest":50,"lodash.assign":9,"vador":38}],52:[function(require,module,exports){
+},{"./halRequest":75,"lodash.assign":9,"vador":38}],77:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6032,7 +6874,7 @@ var HalRestClient = (function (_RestClient) {
 
 exports.HalRestClient = HalRestClient;
 
-},{"./halResource":51,"lodash.assign":9,"vador":38}],53:[function(require,module,exports){
+},{"./halResource":76,"lodash.assign":9,"vador":38}],78:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6059,7 +6901,7 @@ var _interceptors = require('./interceptors');
 
 _defaults(exports, _interopRequireWildcard(_interceptors));
 
-},{"./halRequest":50,"./halResource":51,"./halRestClient":52,"./interceptors":56}],54:[function(require,module,exports){
+},{"./halRequest":75,"./halResource":76,"./halRestClient":77,"./interceptors":81}],79:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6139,7 +6981,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":38}],55:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"vador":38}],80:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6229,7 +7071,7 @@ var IdExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.IdExtractorInterceptor = IdExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":38}],56:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"vador":38}],81:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6256,7 +7098,7 @@ var _populateInterceptor = require('./populateInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_populateInterceptor));
 
-},{"./embeddedExtractorInterceptor":54,"./idExtractorInterceptor":55,"./linkExtractorInterceptor":57,"./populateInterceptor":58}],57:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":79,"./idExtractorInterceptor":80,"./linkExtractorInterceptor":82,"./populateInterceptor":83}],82:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6387,7 +7229,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"lodash.isobject":26,"vador":38}],58:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"lodash.isobject":26,"vador":38}],83:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6497,7 +7339,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
 
 exports.PopulateInterceptor = PopulateInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":38}],59:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"vador":38}],84:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6588,5 +7430,5 @@ var Populate = (function () {
 
 exports.Populate = Populate;
 
-},{"lodash.isobject":26,"lodash.set":27}]},{},[53])(53)
+},{"lodash.isobject":26,"lodash.set":27}]},{},[78])(78)
 });
