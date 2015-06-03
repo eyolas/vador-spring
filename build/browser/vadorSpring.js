@@ -3413,6 +3413,158 @@ function isObject(value) {
 module.exports = isObject;
 
 },{}],27:[function(require,module,exports){
+/**
+ * lodash 3.7.4 (Custom Build) <https://lodash.com/>
+ * Build: `lodash modern modularize exports="npm" -o ./`
+ * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ * Available under MIT license <https://lodash.com/license>
+ */
+var toPath = require('lodash._topath'),
+    isArray = require('lodash.isarray');
+
+/** Used to match property names within property paths. */
+var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\n\\]|\\.)*?\1)\]/,
+    reIsPlainProp = /^\w*$/;
+
+/** Used to detect unsigned integer values. */
+var reIsUint = /^\d+$/;
+
+/**
+ * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
+ * of an array-like value.
+ */
+var MAX_SAFE_INTEGER = 9007199254740991;
+
+/**
+ * Checks if `value` is a valid array-like index.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @param {number} [length=MAX_SAFE_INTEGER] The upper bounds of a valid index.
+ * @returns {boolean} Returns `true` if `value` is a valid index, else `false`.
+ */
+function isIndex(value, length) {
+  value = (typeof value == 'number' || reIsUint.test(value)) ? +value : -1;
+  length = length == null ? MAX_SAFE_INTEGER : length;
+  return value > -1 && value % 1 == 0 && value < length;
+}
+
+/**
+ * Checks if `value` is a property name and not a property path.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @param {Object} [object] The object to query keys on.
+ * @returns {boolean} Returns `true` if `value` is a property name, else `false`.
+ */
+function isKey(value, object) {
+  var type = typeof value;
+  if ((type == 'string' && reIsPlainProp.test(value)) || type == 'number') {
+    return true;
+  }
+  if (isArray(value)) {
+    return false;
+  }
+  var result = !reIsDeepProp.test(value);
+  return result || (object != null && value in toObject(object));
+}
+
+/**
+ * Converts `value` to an object if it's not one.
+ *
+ * @private
+ * @param {*} value The value to process.
+ * @returns {Object} Returns the object.
+ */
+function toObject(value) {
+  return isObject(value) ? value : Object(value);
+}
+
+/**
+ * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
+ * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+ * @example
+ *
+ * _.isObject({});
+ * // => true
+ *
+ * _.isObject([1, 2, 3]);
+ * // => true
+ *
+ * _.isObject(1);
+ * // => false
+ */
+function isObject(value) {
+  // Avoid a V8 JIT bug in Chrome 19-20.
+  // See https://code.google.com/p/v8/issues/detail?id=2291 for more details.
+  var type = typeof value;
+  return !!value && (type == 'object' || type == 'function');
+}
+
+/**
+ * Sets the property value of `path` on `object`. If a portion of `path`
+ * does not exist it is created.
+ *
+ * @static
+ * @memberOf _
+ * @category Object
+ * @param {Object} object The object to augment.
+ * @param {Array|string} path The path of the property to set.
+ * @param {*} value The value to set.
+ * @returns {Object} Returns `object`.
+ * @example
+ *
+ * var object = { 'a': [{ 'b': { 'c': 3 } }] };
+ *
+ * _.set(object, 'a[0].b.c', 4);
+ * console.log(object.a[0].b.c);
+ * // => 4
+ *
+ * _.set(object, 'x[0].y.z', 5);
+ * console.log(object.x[0].y.z);
+ * // => 5
+ */
+function set(object, path, value) {
+  if (object == null) {
+    return object;
+  }
+  var pathKey = (path + '');
+  path = (object[pathKey] != null || isKey(path, object)) ? [pathKey] : toPath(path);
+
+  var index = -1,
+      length = path.length,
+      lastIndex = length - 1,
+      nested = object;
+
+  while (nested != null && ++index < length) {
+    var key = path[index];
+    if (isObject(nested)) {
+      if (index == lastIndex) {
+        nested[key] = value;
+      } else if (nested[key] == null) {
+        nested[key] = isIndex(path[index + 1]) ? [] : {};
+      }
+    }
+    nested = nested[key];
+  }
+  return object;
+}
+
+module.exports = set;
+
+},{"lodash._topath":28,"lodash.isarray":29}],28:[function(require,module,exports){
+arguments[4][23][0].apply(exports,arguments)
+},{"dup":23,"lodash.isarray":29}],29:[function(require,module,exports){
+arguments[4][19][0].apply(exports,arguments)
+},{"dup":19}],30:[function(require,module,exports){
 'use strict';
 var url = require('url');
 var punycode = require('punycode');
@@ -3498,7 +3650,7 @@ module.exports = function (str, opts) {
 	return str;
 };
 
-},{"object-assign":28,"prepend-http":29,"punycode":1,"query-string":30,"sort-keys":31,"url":5}],28:[function(require,module,exports){
+},{"object-assign":31,"prepend-http":32,"punycode":1,"query-string":33,"sort-keys":34,"url":5}],31:[function(require,module,exports){
 'use strict';
 
 function ToObject(val) {
@@ -3526,7 +3678,7 @@ module.exports = Object.assign || function (target, source) {
 	return to;
 };
 
-},{}],29:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 'use strict';
 module.exports = function (url) {
 	if (typeof url !== 'string') {
@@ -3536,7 +3688,7 @@ module.exports = function (url) {
 	return url.trim().replace(/^(?!(?:\w+:)?\/\/)/, 'http://');
 };
 
-},{}],30:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 'use strict';
 
 exports.parse = function (str) {
@@ -3586,7 +3738,7 @@ exports.stringify = function (obj) {
 	}).join('&') : '';
 };
 
-},{}],31:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 'use strict';
 module.exports = function (obj, compareFn) {
 	if (typeof obj !== 'object') {
@@ -3602,7 +3754,7 @@ module.exports = function (obj, compareFn) {
 	return ret;
 };
 
-},{}],32:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3620,7 +3772,7 @@ _defaults(exports, _interopRequireWildcard(_requestInterceptor));
 var _responseInterceptor = require('./responseInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_responseInterceptor));
-},{"./requestInterceptor":33,"./responseInterceptor":34}],33:[function(require,module,exports){
+},{"./requestInterceptor":36,"./responseInterceptor":37}],36:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3648,7 +3800,7 @@ var RequestInterceptor = (function () {
 })();
 
 exports.RequestInterceptor = RequestInterceptor;
-},{}],34:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3676,7 +3828,7 @@ var ResponseInterceptor = (function () {
 })();
 
 exports.ResponseInterceptor = ResponseInterceptor;
-},{}],35:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3694,7 +3846,7 @@ _defaults(exports, _interopRequireWildcard(_restClient));
 var _coreBaseInterceptors = require('./core/baseInterceptors');
 
 _defaults(exports, _interopRequireWildcard(_coreBaseInterceptors));
-},{"./core/baseInterceptors":32,"./restClient/":37}],36:[function(require,module,exports){
+},{"./core/baseInterceptors":35,"./restClient/":40}],39:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3742,7 +3894,7 @@ var Http = (function () {
 })();
 
 exports.Http = Http;
-},{"./utils":42,"superagent-es6-promise":43}],37:[function(require,module,exports){
+},{"./utils":45,"superagent-es6-promise":46}],40:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3768,7 +3920,7 @@ _defaults(exports, _interopRequireWildcard(_response));
 var _restResource = require('./restResource');
 
 _defaults(exports, _interopRequireWildcard(_restResource));
-},{"./request":38,"./response":39,"./restClient":40,"./restResource":41}],38:[function(require,module,exports){
+},{"./request":41,"./response":42,"./restClient":43,"./restResource":44}],41:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3981,7 +4133,7 @@ var Request = (function () {
 })();
 
 exports.Request = Request;
-},{"../core/baseInterceptors/":32,"./response":39,"./utils":42,"normalize-url":27}],39:[function(require,module,exports){
+},{"../core/baseInterceptors/":35,"./response":42,"./utils":45,"normalize-url":30}],42:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -4018,7 +4170,7 @@ var Response = (function () {
 })();
 
 exports.Response = Response;
-},{"lodash.isobject":26}],40:[function(require,module,exports){
+},{"lodash.isobject":26}],43:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -4103,7 +4255,7 @@ var RestClient = (function () {
 })();
 
 exports.RestClient = RestClient;
-},{"./http":36,"./restResource":41,"lodash.assign":9}],41:[function(require,module,exports){
+},{"./http":39,"./restResource":44,"lodash.assign":9}],44:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -4194,7 +4346,7 @@ var RestResource = (function () {
 })();
 
 exports.RestResource = RestResource;
-},{"./http":36,"./request":38}],42:[function(require,module,exports){
+},{"./http":39,"./request":41}],45:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4205,7 +4357,7 @@ exports.isNotEmpty = isNotEmpty;
 function isNotEmpty(arr) {
   return arr && Array.isArray(arr) && arr.length;
 }
-},{}],43:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 // So you can `var request = require("superagent-es6-promise")`
 var superagent = module.exports = require("superagent");
 var Request = superagent.Request;
@@ -4272,7 +4424,7 @@ Request.prototype.then = function() {
   return promise.then.apply(promise, arguments);
 };
 
-},{"superagent":44}],44:[function(require,module,exports){
+},{"superagent":47}],47:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -5397,7 +5549,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":45,"reduce":46}],45:[function(require,module,exports){
+},{"emitter":48,"reduce":49}],48:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -5563,7 +5715,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],46:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -5588,7 +5740,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],47:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5605,6 +5757,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 var _vador = require('vador');
 
+var _populate = require('./populate');
+
 var _interceptors = require('./interceptors/');
 
 var HalRequest = (function (_Request) {
@@ -5614,7 +5768,7 @@ var HalRequest = (function (_Request) {
     _classCallCheck(this, HalRequest);
 
     _get(Object.getPrototypeOf(HalRequest.prototype), 'constructor', this).call(this, baseUrl, resourceName, restResource, config);
-    this._populate = [];
+    this._populates = [];
     this._relations = this._config.relations || null;
     this._restKeys.push('**links**', '**selfLink**', '**hasLinks**');
 
@@ -5629,24 +5783,24 @@ var HalRequest = (function (_Request) {
   _createClass(HalRequest, [{
     key: 'populate',
     value: function populate() {
-      var _populate;
+      var _populates;
 
       for (var _len = arguments.length, rel = Array(_len), _key = 0; _key < _len; _key++) {
         rel[_key] = arguments[_key];
       }
 
-      (_populate = this._populate).push.apply(_populate, rel);
+      (_populates = this._populates).push.apply(_populates, rel);
       return this;
     }
   }, {
     key: 'populates',
     get: function () {
-      return this._populate;
+      return new _populate.Populate(this._populates);
     }
   }, {
     key: 'hasPopulate',
     value: function hasPopulate() {
-      var pop = this._populate;
+      var pop = this._populates;
       return Array.isArray(pop) && pop.length > 0;
     }
   }, {
@@ -5693,7 +5847,7 @@ var HalRequest = (function (_Request) {
 
 exports.HalRequest = HalRequest;
 
-},{"./interceptors/":53,"vador":35}],48:[function(require,module,exports){
+},{"./interceptors/":56,"./populate":59,"vador":38}],51:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5819,7 +5973,7 @@ var HalResource = (function (_RestResource) {
 
 exports.HalResource = HalResource;
 
-},{"./halRequest":47,"lodash.assign":9,"vador":35}],49:[function(require,module,exports){
+},{"./halRequest":50,"lodash.assign":9,"vador":38}],52:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5878,7 +6032,7 @@ var HalRestClient = (function (_RestClient) {
 
 exports.HalRestClient = HalRestClient;
 
-},{"./halResource":48,"lodash.assign":9,"vador":35}],50:[function(require,module,exports){
+},{"./halResource":51,"lodash.assign":9,"vador":38}],53:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5905,7 +6059,7 @@ var _interceptors = require('./interceptors');
 
 _defaults(exports, _interopRequireWildcard(_interceptors));
 
-},{"./halRequest":47,"./halResource":48,"./halRestClient":49,"./interceptors":53}],51:[function(require,module,exports){
+},{"./halRequest":50,"./halResource":51,"./halRestClient":52,"./interceptors":56}],54:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5951,7 +6105,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
   _createClass(EmbeddedExtractorInterceptor, [{
     key: 'response',
     value: function response(_response) {
-      debug('embedded extractor start', _response.request.resourceName, _response.request.responseType, _response.value);
+      debug('embedded extractor start');
       var value = _response.value;
       var request = _response.request;
 
@@ -5985,7 +6139,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":35}],52:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"vador":38}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6075,7 +6229,7 @@ var IdExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.IdExtractorInterceptor = IdExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":35}],53:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"vador":38}],56:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6102,7 +6256,7 @@ var _populateInterceptor = require('./populateInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_populateInterceptor));
 
-},{"./embeddedExtractorInterceptor":51,"./idExtractorInterceptor":52,"./linkExtractorInterceptor":54,"./populateInterceptor":55}],54:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":54,"./idExtractorInterceptor":55,"./linkExtractorInterceptor":57,"./populateInterceptor":58}],57:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6233,7 +6387,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
 
-},{"debug":6,"lodash.has":20,"lodash.isobject":26,"vador":35}],55:[function(require,module,exports){
+},{"debug":6,"lodash.has":20,"lodash.isobject":26,"vador":38}],58:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6243,6 +6397,8 @@ Object.defineProperty(exports, '__esModule', {
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -6259,8 +6415,6 @@ var _debug = require('debug');
 var _debug2 = _interopRequireDefault(_debug);
 
 var debug = new _debug2['default']('halClient [Interceptor]');
-
-var CACHE_FETCH = '**cache_fetch**';
 
 var PopulateInterceptor = (function (_ResponseInterceptor) {
   function PopulateInterceptor() {
@@ -6306,22 +6460,19 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
     value: function _populateOne(object, request) {
       debug('populate one');
       var links = object['**links**'];
-      object[CACHE_FETCH] = [];
 
       var promises = [];
-      request.populates.forEach(function (pop) {
-        var t = pop.split('.');
-        var rel = t.shift();
-        var link = links[rel];
-        // if (rel && has(links, rel) && !~object[CACHE_FETCH].indexOf(link)) {
-        if (rel && (0, _lodashHas2['default'])(links, rel)) {
+      var populates = request.populates;
 
-          object[CACHE_FETCH].push(link);
+      populates.keys().forEach(function (rel) {
+        if (rel && (0, _lodashHas2['default'])(links, rel)) {
+          var link = links[rel];
           var url = link.substring(0, link.indexOf(rel));
           var r = request.restResource._createSubInstance(url, rel);
           var promise = r.findAll();
-          if (t && t.length) {
-            promise.populate(t.join('.'));
+          var subPopulate = populates.getSubPopulate(rel);
+          if (Array.isArray(subPopulate) && subPopulate.length) {
+            promise.populate.apply(promise, _toConsumableArray(subPopulate));
           }
           promise = promise.sendRequest().then(function (res) {
             object[rel] = res.value;
@@ -6331,9 +6482,6 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
       });
 
       return Promise.all(promises).then(function () {
-        if ((0, _lodashHas2['default'])(object, CACHE_FETCH)) {
-          delete object[CACHE_FETCH];
-        }
         return object;
       });
     }
@@ -6349,5 +6497,96 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
 
 exports.PopulateInterceptor = PopulateInterceptor;
 
-},{"debug":6,"lodash.has":20,"vador":35}]},{},[50])(50)
+},{"debug":6,"lodash.has":20,"vador":38}],59:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _lodashSet = require('lodash.set');
+
+var _lodashSet2 = _interopRequireDefault(_lodashSet);
+
+var _lodashIsobject = require('lodash.isobject');
+
+var _lodashIsobject2 = _interopRequireDefault(_lodashIsobject);
+
+var Populate = (function () {
+  function Populate() {
+    var _this = this;
+
+    var populates = arguments[0] === undefined ? [] : arguments[0];
+
+    _classCallCheck(this, Populate);
+
+    if (!Array.isArray(populates)) {
+      populates = [];
+    }
+    this._populates = {};
+
+    //transform array to tree
+    populates.forEach(function (populate) {
+      _this._populates = (0, _lodashSet2['default'])(_this._populates, populate, {});
+    });
+  }
+
+  _createClass(Populate, [{
+    key: 'keys',
+    value: function keys() {
+      return Object.keys(this._populates);
+    }
+  }, {
+    key: 'populates',
+    get: function () {
+      return this._populates;
+    }
+  }, {
+    key: 'getPopulateArray',
+    value: function getPopulateArray() {
+      return this._getPopulate(this._populates);
+    }
+  }, {
+    key: '_getPopulate',
+    value: function _getPopulate(obj) {
+      var _this2 = this;
+
+      var populates = [];
+      Object.keys(obj).forEach(function (k) {
+        var val = obj[k];
+        if ((0, _lodashIsobject2['default'])(val) && Object.keys(val).length) {
+          var p = _this2._getPopulate(val);
+          p.forEach(function (v) {
+            return populates.push(k + '.' + v);
+          });
+        } else {
+          populates.push(k);
+        }
+      });
+      return populates;
+    }
+  }, {
+    key: 'getSubPopulate',
+    value: function getSubPopulate(sub) {
+      var subPopulate = this._populates[sub];
+      if (subPopulate) {
+        return this._getPopulate(subPopulate);
+      } else {
+        return [];
+      }
+    }
+  }]);
+
+  return Populate;
+})();
+
+exports.Populate = Populate;
+
+},{"lodash.isobject":26,"lodash.set":27}]},{},[53])(53)
 });

@@ -8,6 +8,8 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
@@ -23,8 +25,6 @@ var _debug = require('debug');
 var _debug2 = _interopRequireDefault(_debug);
 
 var debug = new _debug2['default']('halClient [Interceptor]');
-
-var CACHE_FETCH = '**cache_fetch**';
 
 var PopulateInterceptor = (function (_ResponseInterceptor) {
   function PopulateInterceptor() {
@@ -70,22 +70,19 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
     value: function _populateOne(object, request) {
       debug('populate one');
       var links = object['**links**'];
-      object[CACHE_FETCH] = [];
 
       var promises = [];
-      request.populates.forEach(function (pop) {
-        var t = pop.split('.');
-        var rel = t.shift();
-        var link = links[rel];
-        // if (rel && has(links, rel) && !~object[CACHE_FETCH].indexOf(link)) {
-        if (rel && (0, _lodashHas2['default'])(links, rel)) {
+      var populates = request.populates;
 
-          object[CACHE_FETCH].push(link);
+      populates.keys().forEach(function (rel) {
+        if (rel && (0, _lodashHas2['default'])(links, rel)) {
+          var link = links[rel];
           var url = link.substring(0, link.indexOf(rel));
           var r = request.restResource._createSubInstance(url, rel);
           var promise = r.findAll();
-          if (t && t.length) {
-            promise.populate(t.join('.'));
+          var subPopulate = populates.getSubPopulate(rel);
+          if (Array.isArray(subPopulate) && subPopulate.length) {
+            promise.populate.apply(promise, _toConsumableArray(subPopulate));
           }
           promise = promise.sendRequest().then(function (res) {
             object[rel] = res.value;
@@ -95,9 +92,6 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
       });
 
       return Promise.all(promises).then(function () {
-        if ((0, _lodashHas2['default'])(object, CACHE_FETCH)) {
-          delete object[CACHE_FETCH];
-        }
         return object;
       });
     }

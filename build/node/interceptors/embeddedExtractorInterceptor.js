@@ -43,7 +43,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
   _createClass(EmbeddedExtractorInterceptor, [{
     key: 'response',
     value: function response(_response) {
-      debug('embedded extractor start', _response.request.resourceName, _response.request.responseType, _response.value);
+      debug('embedded extractor start');
       var value = _response.value;
       var request = _response.request;
 

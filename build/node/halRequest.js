@@ -14,6 +14,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 var _vador = require('vador');
 
+var _populate = require('./populate');
+
 var _interceptors = require('./interceptors/');
 
 var HalRequest = (function (_Request) {
@@ -23,7 +25,7 @@ var HalRequest = (function (_Request) {
     _classCallCheck(this, HalRequest);
 
     _get(Object.getPrototypeOf(HalRequest.prototype), 'constructor', this).call(this, baseUrl, resourceName, restResource, config);
-    this._populate = [];
+    this._populates = [];
     this._relations = this._config.relations || null;
     this._restKeys.push('**links**', '**selfLink**', '**hasLinks**');
 
@@ -38,24 +40,24 @@ var HalRequest = (function (_Request) {
   _createClass(HalRequest, [{
     key: 'populate',
     value: function populate() {
-      var _populate;
+      var _populates;
 
       for (var _len = arguments.length, rel = Array(_len), _key = 0; _key < _len; _key++) {
         rel[_key] = arguments[_key];
       }
 
-      (_populate = this._populate).push.apply(_populate, rel);
+      (_populates = this._populates).push.apply(_populates, rel);
       return this;
     }
   }, {
     key: 'populates',
     get: function () {
-      return this._populate;
+      return new _populate.Populate(this._populates);
     }
   }, {
     key: 'hasPopulate',
     value: function hasPopulate() {
-      var pop = this._populate;
+      var pop = this._populates;
       return Array.isArray(pop) && pop.length > 0;
     }
   }, {
