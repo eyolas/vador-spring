@@ -10,8 +10,6 @@ var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_ag
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
@@ -29,13 +27,15 @@ var _debug2 = _interopRequireDefault(_debug);
 var debug = new _debug2['default']('halClient [Interceptor]');
 
 var EMBEDDED = '_embedded';
+var PAGE = 'page';
 
 var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
-  function EmbeddedExtractorInterceptor(tagEmbedded) {
+  function EmbeddedExtractorInterceptor(tagEmbedded, tagPage) {
     _classCallCheck(this, EmbeddedExtractorInterceptor);
 
     _get(Object.getPrototypeOf(EmbeddedExtractorInterceptor.prototype), 'constructor', this).call(this);
     this.tagEmbedded = tagEmbedded || EMBEDDED;
+    this.tagPage = tagPage || PAGE;
   }
 
   _inherits(EmbeddedExtractorInterceptor, _ResponseInterceptor);
@@ -49,14 +49,10 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
       if (request.responseType === Array) {
         if ((0, _lodashObjectHas2['default'])(value, '' + this.tagEmbedded + '.' + request.resourceName)) {
-          var val = [];
-          for (var k in value) {
-            if (k !== this.tagEmbedded) {
-              val[k] = value[k];
-            }
+          if (((0, _lodashObjectHas2['default'])(value), this.tagPage)) {
+            _response.page = value.page;
           }
-          val.push.apply(val, _toConsumableArray(value[this.tagEmbedded][request.resourceName]));
-          value = val;
+          value = value[this.tagEmbedded][request.resourceName];
         }
       }
 
