@@ -5,13 +5,11 @@ import Debug from 'debug';
 var debug = new Debug('halClient [Interceptor]');
 
 const EMBEDDED = '_embedded';
-const PAGE = 'page';
 
 export class EmbeddedExtractorInterceptor extends ResponseInterceptor {
-  constructor(tagEmbedded, tagPage) {
+  constructor(tagEmbedded) {
     super();
     this.tagEmbedded = tagEmbedded || EMBEDDED;
-    this.tagPage = tagPage || PAGE;
   }
 
   response(response) {
@@ -19,9 +17,6 @@ export class EmbeddedExtractorInterceptor extends ResponseInterceptor {
     let {value, request} = response;
     if (request.responseType === Array) {
       if (has(value, `${this.tagEmbedded}.${request.resourceName}`)) {
-        if (has(value), this.tagPage) {
-          response.page = value.page;
-        }
         value = value[this.tagEmbedded][request.resourceName];
       }
     }

@@ -1,6 +1,6 @@
 import {Request} from 'vador';
 import {Populate} from './populate';
-import {IdExtractorInterceptor, LinkExtractorInterceptor, EmbeddedExtractorInterceptor, PopulateInterceptor}
+import {PaginationExtractorInterceptor, IdExtractorInterceptor, LinkExtractorInterceptor, EmbeddedExtractorInterceptor, PopulateInterceptor}
 from './interceptors/';
 
 
@@ -13,6 +13,7 @@ export class HalRequest extends Request {
 
     //internal interceptors
     var interceptors = [
+      new PaginationExtractorInterceptor(),
       new EmbeddedExtractorInterceptor(),
       new LinkExtractorInterceptor(),
       new IdExtractorInterceptor(),
