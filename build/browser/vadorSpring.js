@@ -6783,9 +6783,17 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
       if ((0, _lodashObjectHas2['default'])(obj, this.tagEmbedded)) {
         obj = obj[this.tagEmbedded];
         var keys = Object.keys(obj);
-        //if is an array so set object to array (case findAll)
-        if (keys.length === 1 && Array.isArray(obj[keys[0]])) {
-          obj = obj[keys[0]];
+        if (keys.length === 1) {
+          if (keys[0] === this.tagEmbedded) {
+            throw new Error('an embedded can\'t have directly an embedded');
+          }
+
+          //if is an array so set object to array (case findAll)
+          if (Array.isArray(obj[keys[0]])) {
+            obj = obj[keys[0]];
+          }
+        } else {
+          throw new Error('an embedded must have an object with one key');
         }
       }
 
@@ -6806,7 +6814,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
           var newObj = {};
           Object.keys(obj).forEach(function (k) {
             var val = obj[k];
-            if (k === _this.tagEmbedded && (0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length === 1) {
+            if (k === _this.tagEmbedded && (0, _lodashLangIsObject2['default'])(val)) {
               if ((0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length === 1) {
                 k = Object.keys(val)[0];
                 if (k === _this.tagEmbedded) {
