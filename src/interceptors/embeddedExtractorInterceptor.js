@@ -28,9 +28,17 @@ export class EmbeddedExtractorInterceptor extends ResponseInterceptor {
     if (has(obj, this.tagEmbedded)) {
       obj = obj[this.tagEmbedded];
       let keys = Object.keys(obj);
-      //if is an array so set object to array (case findAll)
-      if (keys.length === 1 && Array.isArray(obj[keys[0]])) {
-        obj = obj[keys[0]]
+      if (keys.length === 1) {
+        if (keys[0] === this.tagEmbedded) {
+          throw new Error("an embedded can't have directly an embedded")
+        }
+
+         //if is an array so set object to array (case findAll)
+        if (Array.isArray(obj[keys[0]])) {
+          obj = obj[keys[0]]
+        }
+      } else {
+        throw new Error('an embedded must have an object with one key');
       }
     }
 
@@ -46,7 +54,7 @@ export class EmbeddedExtractorInterceptor extends ResponseInterceptor {
       Object.keys(obj)
         .forEach(k => {
           let val = obj[k];
-          if (k === this.tagEmbedded && isObject(val) && Object.keys(val).length === 1) {
+          if (k === this.tagEmbedded && isObject(val)) {
             if (isObject(val) && Object.keys(val).length === 1) {
               k = Object.keys(val)[0];
               if (k === this.tagEmbedded) {
