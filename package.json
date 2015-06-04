@@ -1,6 +1,6 @@
 {
   "name": "vador-spring",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "hal client for spring data rest with hateoas",
   "main": "build/node/index.js",
   "scripts": {

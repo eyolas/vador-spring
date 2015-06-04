@@ -49,30 +49,45 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
       var value = _response.value;
       var request = _response.request;
 
-      _response.value = this.extractEmbbeded(value);
+      _response.value = this._extractEmbbeded(value);
 
       debug('embedded extractor end');
       return _response;
     }
   }, {
-    key: 'extractEmbbeded',
-    value: function extractEmbbeded(obj) {
+    key: '_extractEmbbeded',
+    value: function _extractEmbbeded(obj) {
+      // if there is an embedded in object set object by the embedded
+      if ((0, _lodashObjectHas2['default'])(obj, this.tagEmbedded)) {
+        obj = obj[this.tagEmbedded];
+        var keys = Object.keys(obj);
+        //if is an array so set object to array (case findAll)
+        if (keys.length === 1 && Array.isArray(obj[keys[0]])) {
+          obj = obj[keys[0]];
+        }
+      }
+
+      return this._internalExtractEmbbeded(obj);
+    }
+  }, {
+    key: '_internalExtractEmbbeded',
+    value: function _internalExtractEmbbeded(obj) {
       var _this = this;
 
       //Array first because array is an object
       if (Array.isArray(obj)) {
         return obj.map(function (v) {
-          return _this.extractEmbbeded(v);
+          return _this._internalExtractEmbbeded(v);
         });
       } else if ((0, _lodashLangIsObject2['default'])(obj)) {
         var _ret = (function () {
           var newObj = {};
           Object.keys(obj).forEach(function (k) {
             var val = obj[k];
-            if (k === '_embedded' && (0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length === 1) {
+            if (k === _this.tagEmbedded && (0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length === 1) {
               if ((0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length === 1) {
                 k = Object.keys(val)[0];
-                if (k === '_embedded') {
+                if (k === _this.tagEmbedded) {
                   throw new Error('an embedded can\'t have directly an embedded');
                 }
                 val = val[k];
@@ -80,7 +95,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
                 throw new Error('an embedded must have an object with one key');
               }
             }
-            newObj[k] = _this.extractEmbbeded(val);
+            newObj[k] = _this._internalExtractEmbbeded(val);
           });
           return {
             v: newObj
