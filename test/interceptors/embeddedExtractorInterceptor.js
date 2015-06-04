@@ -7,7 +7,7 @@ var extract = () => extracted = extractor.response(response);
 
 describe('EmbeddedExtractorInterceptor', () => {
   describe('test with default tag', () => {
-    before(() => {
+    beforeEach(() => {
       extractor = new EmbeddedExtractorInterceptor();
       response = {value: null, request: null};
       extracted = null;
