@@ -17,25 +17,39 @@ export class EmbeddedExtractorInterceptor extends ResponseInterceptor {
     debug('embedded extractor start');
     let {value, request} = response;
 
-    response.value = this.extractEmbbeded(value);
+    response.value = this._extractEmbbeded(value);
 
     debug('embedded extractor end');
     return response;
   }
 
-  extractEmbbeded(obj) {
+  _extractEmbbeded(obj) {
+    // if there is an embedded in object set object by the embedded
+    if (has(obj, this.tagEmbedded)) {
+      obj = obj[this.tagEmbedded];
+      let keys = Object.keys(obj);
+      //if is an array so set object to array (case findAll)
+      if (keys.length === 1 && Array.isArray(obj[keys[0]])) {
+        obj = obj[keys[0]]
+      }
+    }
+
+    return this._internalExtractEmbbeded(obj);
+  }
+
+  _internalExtractEmbbeded(obj) {
     //Array first because array is an object
     if (Array.isArray(obj)) {
-      return obj.map(v => this.extractEmbbeded(v));
+      return obj.map(v => this._internalExtractEmbbeded(v));
     } else if (isObject(obj)) {
       let newObj = {};
       Object.keys(obj)
         .forEach(k => {
           let val = obj[k];
-          if (k === '_embedded' && isObject(val) && Object.keys(val).length === 1) {
+          if (k === this.tagEmbedded && isObject(val) && Object.keys(val).length === 1) {
             if (isObject(val) && Object.keys(val).length === 1) {
               k = Object.keys(val)[0];
-              if (k === '_embedded') {
+              if (k === this.tagEmbedded) {
                 throw new Error("an embedded can't have directly an embedded")
               }
               val = val[k];
@@ -43,7 +57,7 @@ export class EmbeddedExtractorInterceptor extends ResponseInterceptor {
               throw new Error('an embedded must have an object with one key');
             }
           }
-          newObj[k] = this.extractEmbbeded(val);
+          newObj[k] = this._internalExtractEmbbeded(val);
         });
       return newObj;
     } else {
