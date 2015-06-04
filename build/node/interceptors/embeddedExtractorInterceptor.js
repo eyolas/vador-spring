@@ -24,6 +24,10 @@ var _debug = require('debug');
 
 var _debug2 = _interopRequireDefault(_debug);
 
+var _lodashLangIsObject = require('lodash/lang/isObject');
+
+var _lodashLangIsObject2 = _interopRequireDefault(_lodashLangIsObject);
+
 var debug = new _debug2['default']('halClient [Interceptor]');
 
 var EMBEDDED = '_embedded';
@@ -45,16 +49,48 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
       var value = _response.value;
       var request = _response.request;
 
-      if (request.responseType === Array) {
-        if ((0, _lodashObjectHas2['default'])(value, '' + this.tagEmbedded + '.' + request.resourceName)) {
-          value = value[this.tagEmbedded][request.resourceName];
-        }
-      }
-
-      _response.value = value;
+      _response.value = this.extractEmbbeded(value);
 
       debug('embedded extractor end');
       return _response;
+    }
+  }, {
+    key: 'extractEmbbeded',
+    value: function extractEmbbeded(obj) {
+      var _this = this;
+
+      //Array first because array is an object
+      if (Array.isArray(obj)) {
+        return obj.map(function (v) {
+          return _this.extractEmbbeded(v);
+        });
+      } else if ((0, _lodashLangIsObject2['default'])(obj)) {
+        var _ret = (function () {
+          var newObj = {};
+          Object.keys(obj).forEach(function (k) {
+            var val = obj[k];
+            if (k === '_embedded' && (0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length === 1) {
+              if ((0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length === 1) {
+                k = Object.keys(val)[0];
+                if (k === '_embedded') {
+                  throw new Error('an embedded can\'t have directly an embedded');
+                }
+                val = val[k];
+              } else {
+                throw new Error('an embedded must have an object with one key');
+              }
+            }
+            newObj[k] = _this.extractEmbbeded(val);
+          });
+          return {
+            v: newObj
+          };
+        })();
+
+        if (typeof _ret === 'object') return _ret.v;
+      } else {
+        return obj;
+      }
     }
   }, {
     key: 'responseError',
