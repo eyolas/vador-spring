@@ -1,6 +1,7 @@
 import {ResponseInterceptor} from 'vador';
 import has from 'lodash/object/has';
 import Debug from 'debug';
+import isObject from 'lodash/lang/isObject';
 
 var debug = new Debug('halClient [Interceptor]');
 
@@ -15,16 +16,39 @@ export class EmbeddedExtractorInterceptor extends ResponseInterceptor {
   response(response) {
     debug('embedded extractor start');
     let {value, request} = response;
-    if (request.responseType === Array) {
-      if (has(value, `${this.tagEmbedded}.${request.resourceName}`)) {
-        value = value[this.tagEmbedded][request.resourceName];
-      }
-    }
 
-    response.value = value;
+    response.value = this.extractEmbbeded(value);
 
     debug('embedded extractor end');
     return response;
+  }
+
+  extractEmbbeded(obj) {
+    //Array first because array is an object
+    if (Array.isArray(obj)) {
+      return obj.map(v => this.extractEmbbeded(v));
+    } else if (isObject(obj)) {
+      let newObj = {};
+      Object.keys(obj)
+        .forEach(k => {
+          let val = obj[k];
+          if (k === '_embedded' && isObject(val) && Object.keys(val).length === 1) {
+            if (isObject(val) && Object.keys(val).length === 1) {
+              k = Object.keys(val)[0];
+              if (k === '_embedded') {
+                throw new Error("an embedded can't have directly an embedded")
+              }
+              val = val[k];
+            } else {
+              throw new Error('an embedded must have an object with one key');
+            }
+          }
+          newObj[k] = this.extractEmbbeded(val);
+        });
+      return newObj;
+    } else {
+      return obj;
+    }
   }
 
   responseError(error){
