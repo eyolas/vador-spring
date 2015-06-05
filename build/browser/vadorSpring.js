@@ -1,14 +1,19 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.vadorSpring = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
-/*! http://mths.be/punycode v1.2.4 by @mathias */
+/*! https://mths.be/punycode v1.3.2 by @mathias */
 ;(function(root) {
 
 	/** Detect free variables */
-	var freeExports = typeof exports == 'object' && exports;
+	var freeExports = typeof exports == 'object' && exports &&
+		!exports.nodeType && exports;
 	var freeModule = typeof module == 'object' && module &&
-		module.exports == freeExports && module;
+		!module.nodeType && module;
 	var freeGlobal = typeof global == 'object' && global;
-	if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
+	if (
+		freeGlobal.global === freeGlobal ||
+		freeGlobal.window === freeGlobal ||
+		freeGlobal.self === freeGlobal
+	) {
 		root = freeGlobal;
 	}
 
@@ -34,8 +39,8 @@
 
 	/** Regular expressions */
 	regexPunycode = /^xn--/,
-	regexNonASCII = /[^ -~]/, // unprintable ASCII chars + non-ASCII chars
-	regexSeparators = /\x2E|\u3002|\uFF0E|\uFF61/g, // RFC 3490 separators
+	regexNonASCII = /[^\x20-\x7E]/, // unprintable ASCII chars + non-ASCII chars
+	regexSeparators = /[\x2E\u3002\uFF0E\uFF61]/g, // RFC 3490 separators
 
 	/** Error messages */
 	errors = {
@@ -74,23 +79,37 @@
 	 */
 	function map(array, fn) {
 		var length = array.length;
+		var result = [];
 		while (length--) {
-			array[length] = fn(array[length]);
+			result[length] = fn(array[length]);
 		}
-		return array;
+		return result;
 	}
 
 	/**
-	 * A simple `Array#map`-like wrapper to work with domain name strings.
+	 * A simple `Array#map`-like wrapper to work with domain name strings or email
+	 * addresses.
 	 * @private
-	 * @param {String} domain The domain name.
+	 * @param {String} domain The domain name or email address.
 	 * @param {Function} callback The function that gets called for every
 	 * character.
 	 * @returns {Array} A new string of characters returned by the callback
 	 * function.
 	 */
 	function mapDomain(string, fn) {
-		return map(string.split(regexSeparators), fn).join('.');
+		var parts = string.split('@');
+		var result = '';
+		if (parts.length > 1) {
+			// In email addresses, only the domain name should be punycoded. Leave
+			// the local part (i.e. everything up to `@`) intact.
+			result = parts[0] + '@';
+			string = parts[1];
+		}
+		// Avoid `split(regex)` for IE8 compatibility. See #17.
+		string = string.replace(regexSeparators, '\x2E');
+		var labels = string.split('.');
+		var encoded = map(labels, fn).join('.');
+		return result + encoded;
 	}
 
 	/**
@@ -100,7 +119,7 @@
 	 * UCS-2 exposes as separate characters) into a single code point,
 	 * matching UTF-16.
 	 * @see `punycode.ucs2.encode`
-	 * @see <http://mathiasbynens.be/notes/javascript-encoding>
+	 * @see <https://mathiasbynens.be/notes/javascript-encoding>
 	 * @memberOf punycode.ucs2
 	 * @name decode
 	 * @param {String} string The Unicode input string (UCS-2).
@@ -309,8 +328,8 @@
 	}
 
 	/**
-	 * Converts a string of Unicode symbols to a Punycode string of ASCII-only
-	 * symbols.
+	 * Converts a string of Unicode symbols (e.g. a domain name label) to a
+	 * Punycode string of ASCII-only symbols.
 	 * @memberOf punycode
 	 * @param {String} input The string of Unicode symbols.
 	 * @returns {String} The resulting Punycode string of ASCII-only symbols.
@@ -423,17 +442,18 @@
 	}
 
 	/**
-	 * Converts a Punycode string representing a domain name to Unicode. Only the
-	 * Punycoded parts of the domain name will be converted, i.e. it doesn't
-	 * matter if you call it on a string that has already been converted to
-	 * Unicode.
+	 * Converts a Punycode string representing a domain name or an email address
+	 * to Unicode. Only the Punycoded parts of the input will be converted, i.e.
+	 * it doesn't matter if you call it on a string that has already been
+	 * converted to Unicode.
 	 * @memberOf punycode
-	 * @param {String} domain The Punycode domain name to convert to Unicode.
+	 * @param {String} input The Punycoded domain name or email address to
+	 * convert to Unicode.
 	 * @returns {String} The Unicode representation of the given Punycode
 	 * string.
 	 */
-	function toUnicode(domain) {
-		return mapDomain(domain, function(string) {
+	function toUnicode(input) {
+		return mapDomain(input, function(string) {
 			return regexPunycode.test(string)
 				? decode(string.slice(4).toLowerCase())
 				: string;
@@ -441,15 +461,18 @@
 	}
 
 	/**
-	 * Converts a Unicode string representing a domain name to Punycode. Only the
-	 * non-ASCII parts of the domain name will be converted, i.e. it doesn't
-	 * matter if you call it with a domain that's already in ASCII.
+	 * Converts a Unicode string representing a domain name or an email address to
+	 * Punycode. Only the non-ASCII parts of the domain name will be converted,
+	 * i.e. it doesn't matter if you call it with a domain that's already in
+	 * ASCII.
 	 * @memberOf punycode
-	 * @param {String} domain The domain name to convert, as a Unicode string.
-	 * @returns {String} The Punycode representation of the given domain name.
+	 * @param {String} input The domain name or email address to convert, as a
+	 * Unicode string.
+	 * @returns {String} The Punycode representation of the given domain name or
+	 * email address.
 	 */
-	function toASCII(domain) {
-		return mapDomain(domain, function(string) {
+	function toASCII(input) {
+		return mapDomain(input, function(string) {
 			return regexNonASCII.test(string)
 				? 'xn--' + encode(string)
 				: string;
@@ -465,11 +488,11 @@
 		 * @memberOf punycode
 		 * @type String
 		 */
-		'version': '1.2.4',
+		'version': '1.3.2',
 		/**
 		 * An object of methods to convert from JavaScript's internal character
 		 * representation (UCS-2) to Unicode code points, and back.
-		 * @see <http://mathiasbynens.be/notes/javascript-encoding>
+		 * @see <https://mathiasbynens.be/notes/javascript-encoding>
 		 * @memberOf punycode
 		 * @type Object
 		 */
@@ -494,8 +517,8 @@
 		define('punycode', function() {
 			return punycode;
 		});
-	} else if (freeExports && !freeExports.nodeType) {
-		if (freeModule) { // in Node.js or RingoJS v0.8.0+
+	} else if (freeExports && freeModule) {
+		if (module.exports == freeExports) { // in Node.js or RingoJS v0.8.0+
 			freeModule.exports = punycode;
 		} else { // in Narwhal or RingoJS v0.7.0-
 			for (key in punycode) {
@@ -6420,46 +6443,35 @@ module.exports = function pctEncode(regexp) {
 },{}],66:[function(require,module,exports){
 "use strict";function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),_get=function(e,t,r){for(var n=!0;n;){var o=e,i=t,a=r;s=c=u=void 0,n=!1;var s=Object.getOwnPropertyDescriptor(o,i);if(void 0!==s){if("value"in s)return s.value;var u=s.get;return void 0===u?void 0:u.call(a)}var c=Object.getPrototypeOf(o);if(null===c)return void 0;e=c,t=i,r=a,n=!0}},_vador=require("vador"),_populate=require("./populate"),_interceptors=require("./interceptors/"),HalRequest=function(e){function t(e,r,n){var o=void 0===arguments[3]?{}:arguments[3];_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this,e,r,n,o),this._populates=[],this._relations=this._config.relations||null,this._restKeys.push("**links**","**selfLink**","**hasLinks**");var i=[new _interceptors.PaginationExtractorInterceptor,new _interceptors.EmbeddedExtractorInterceptor,new _interceptors.LinkExtractorInterceptor,new _interceptors.IdExtractorInterceptor,new _interceptors.PopulateInterceptor];this._interceptors=i.concat(this._interceptors)}return _inherits(t,e),_createClass(t,[{key:"populate",value:function(){for(var e,t=arguments.length,r=Array(t),n=0;t>n;n++)r[n]=arguments[n];return(e=this._populates).push.apply(e,r),this}},{key:"hasPopulate",value:function(){var e=this._populates;return Array.isArray(e)&&e.length>0}},{key:"_proxifyOne",value:function(e,r){var n=this,o=_get(Object.getPrototypeOf(t.prototype),"_proxifyOne",this).call(this,e),i=e["**links**"];return i&&Object.keys(i).forEach(function(e){if(!o.hasOwnProperty(e)){var t=i[e],r=t.substring(0,t.indexOf(e)),a=n.restResource._createSubInstance(r,e);!function(t){var r=void 0;Object.defineProperty(o,""+e+"Async",{enumerable:!1,get:function(){return void 0!==r?Promise.resolve(r):t.findAll().sendRequest().then(function(e){return r=e.value,Promise.resolve(r)})}})}(a)}}),o}},{key:"populates",get:function(){return new _populate.Populate(this._populates)}}]),t}(_vador.Request);exports.HalRequest=HalRequest;
 
-
-},{"./interceptors/":72,"./populate":76,"vador":50}],67:[function(require,module,exports){
+},{"./interceptors/":71,"./populate":75,"vador":50}],67:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,r){if(!(e instanceof r))throw new TypeError("Cannot call a class as a function")}function _inherits(e,r){if("function"!=typeof r&&null!==r)throw new TypeError("Super expression must either be null or a function, not "+typeof r);e.prototype=Object.create(r&&r.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),r&&(e.__proto__=r)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,r){for(var t=0;t<r.length;t++){var n=r[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(r,t,n){return t&&e(r.prototype,t),n&&e(r,n),r}}(),_get=function(e,r,t){for(var n=!0;n;){var a=e,o=r,u=t;s=l=i=void 0,n=!1;var s=Object.getOwnPropertyDescriptor(a,o);if(void 0!==s){if("value"in s)return s.value;var i=s.get;return void 0===i?void 0:i.call(u)}var l=Object.getPrototypeOf(a);if(null===l)return void 0;e=l,r=o,t=u,n=!0}},_vador=require("vador"),_lodashObjectAssign=require("lodash/object/assign"),_lodashObjectAssign2=_interopRequireDefault(_lodashObjectAssign),_halRequest=require("./halRequest"),HalResource=function(e){function r(){_classCallCheck(this,r),null!=e&&e.apply(this,arguments)}return _inherits(r,e),_createClass(r,[{key:"_createSubInstance",value:function(e,t,n){return new r(e,t,n)}},{key:"constructBaseRequest",value:function(){var e=void 0===arguments[0]?"get":arguments[0],r=void 0===arguments[1]?Array:arguments[1],t=void 0===arguments[2]?"":arguments[2],n=new _halRequest.HalRequest(this._baseUrl,this.resourceName,this,this._config);return n.responseType=r,n.url=this._baseUrl+this.resourceName+t,n.method=e,n}},{key:"_transformToLink",value:function(e,r,t){var n=this,a=null,o=r.href,u=r.type;if(null===e)return{type:u,newValue:a};if("many"===u){if(!Array.isArray(e))throw new Error("For relation "+t+", the value must be an Array");a=[],e.forEach(function(e){var r=n._transformToLinkOne(e,o,t);null!==r&&a.push(r)})}else a=this._transformToLinkOne(e,o,t);return{type:u,newValue:a}}},{key:"_transformToLinkOne",value:function(e,r,t){if(null==e)return null;if(e.id)return(""+r+"/"+e.id).replace(/\/{2,}/,"/");throw new Error("For relation "+t+", the value must have id")}},{key:"save",value:function(e){var t=this,n=_lodashObjectAssign2["default"]({},this._relations||{});return n&&Object.keys(n).forEach(function(r){if(e.hasOwnProperty(r)){var a=t._transformToLink(e[r],n[r],r),o=(a.type,a.newValue);e[r]=o}}),_get(Object.getPrototypeOf(r.prototype),"save",this).call(this,e)}}]),r}(_vador.RestResource);exports.HalResource=HalResource;
-
 
 },{"./halRequest":66,"lodash/object/assign":35,"vador":50}],68:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),_vador=require("vador"),_halResource=require("./halResource"),_lodashObjectAssign=require("lodash/object/assign"),_lodashObjectAssign2=_interopRequireDefault(_lodashObjectAssign),HalRestClient=function(e){function t(){_classCallCheck(this,t),null!=e&&e.apply(this,arguments)}return _inherits(t,e),_createClass(t,[{key:"instanciateResource",value:function(e,t){return new _halResource.HalResource(this._baseUrl,e,t)}}]),t}(_vador.RestClient);exports.HalRestClient=HalRestClient;
 
-
 },{"./halResource":67,"lodash/object/assign":35,"vador":50}],69:[function(require,module,exports){
-"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],a=Object.getOwnPropertyDescriptor(r,i);a&&a.configurable&&void 0===e[i]&&Object.defineProperty(e,i,a)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug),_halRestClient=require("./halRestClient");_defaults(exports,_interopRequireWildcard(_halRestClient));var _halResource=require("./halResource");_defaults(exports,_interopRequireWildcard(_halResource));var _halRequest=require("./halRequest");_defaults(exports,_interopRequireWildcard(_halRequest));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
-
-
-},{"./halRequest":66,"./halResource":67,"./halRestClient":68,"./interceptors":72,"debug":6}],70:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var a=t[r];a.enumerable=a.enumerable||!1,a.configurable=!0,"value"in a&&(a.writable=!0),Object.defineProperty(e,a.key,a)}}return function(t,r,a){return r&&e(t.prototype,r),a&&e(t,a),t}}(),_get=function(e,t,r){for(var a=!0;a;){var n=e,o=t,d=r;i=c=u=void 0,a=!1;var i=Object.getOwnPropertyDescriptor(n,o);if(void 0!==i){if("value"in i)return i.value;var u=i.get;return void 0===u?void 0:u.call(d)}var c=Object.getPrototypeOf(n);if(null===c)return void 0;e=c,t=o,r=d,a=!0}},_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),_lodashLangIsObject=require("lodash/lang/isObject"),_lodashLangIsObject2=_interopRequireDefault(_lodashLangIsObject),debug=new _debug2["default"]("halClient [Interceptor]"),EMBEDDED="_embedded",EmbeddedExtractorInterceptor=function(e){function t(e){_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this),this.tagEmbedded=e||EMBEDDED}return _inherits(t,e),_createClass(t,[{key:"response",value:function(e){debug("embedded extractor start");var t=e.value;e.request;return e.value=this._extractEmbbeded(t),debug("embedded extractor end"),e}},{key:"_extractEmbbeded",value:function(e){if(_lodashObjectHas2["default"](e,this.tagEmbedded)){e=e[this.tagEmbedded];var t=Object.keys(e);if(1!==t.length)throw new Error("an embedded must have an object with one key");if(t[0]===this.tagEmbedded)throw new Error("an embedded can't have directly an embedded");Array.isArray(e[t[0]])&&(e=e[t[0]])}return this._internalExtractEmbbeded(e)}},{key:"_internalExtractEmbbeded",value:function(e){var t=this;if(Array.isArray(e))return e.map(function(e){return t._internalExtractEmbbeded(e)});if(!_lodashLangIsObject2["default"](e))return e;var r=function(){var r={};return Object.keys(e).forEach(function(a){var n=e[a];if(a===t.tagEmbedded&&_lodashLangIsObject2["default"](n)){if(!_lodashLangIsObject2["default"](n)||1!==Object.keys(n).length)throw new Error("an embedded must have an object with one key");if(a=Object.keys(n)[0],a===t.tagEmbedded)throw new Error("an embedded can't have directly an embedded");n=n[a]}r[a]=t._internalExtractEmbbeded(n)}),{v:r}}();return"object"==typeof r?r.v:void 0}},{key:"responseError",value:function(e){console.error("embedded extractor responseError",e)}}]),t}(_vador.ResponseInterceptor);exports.EmbeddedExtractorInterceptor=EmbeddedExtractorInterceptor;
 
-
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],71:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],70:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,r){if(!(e instanceof r))throw new TypeError("Cannot call a class as a function")}function _inherits(e,r){if("function"!=typeof r&&null!==r)throw new TypeError("Super expression must either be null or a function, not "+typeof r);e.prototype=Object.create(r&&r.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),r&&(e.__proto__=r)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,r){for(var t=0;t<r.length;t++){var n=r[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(r,t,n){return t&&e(r.prototype,t),n&&e(r,n),r}}(),_vador=require("vador"),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),REGEX_LASTPART=/\/([^\/]*)\/?$/,IdExtractorInterceptor=function(e){function r(){_classCallCheck(this,r),null!=e&&e.apply(this,arguments)}return _inherits(r,e),_createClass(r,[{key:"response",value:function(e){var r=this;debug("id extractor start");var t=e.value;return e.hasValue()?(Array.isArray(t)?t.forEach(function(e){return r._extractId(e)}):this._extractId(t),debug("id extractor end"),e):(debug("id extractor end (do nothing)"),e)}},{key:"_extractId",value:function(e){if(!e.id){var r=e["**selfLink**"];if(r){var t=r.match(REGEX_LASTPART);t.length>1&&(e.id=t[1])}}}},{key:"responseError",value:function(e){console.error("id extractor responseError"),console.error(e.stack)}}]),r}(_vador.ResponseInterceptor);exports.IdExtractorInterceptor=IdExtractorInterceptor;
 
-
-},{"debug":6,"vador":50}],72:[function(require,module,exports){
+},{"debug":6,"vador":50}],71:[function(require,module,exports){
 "use strict";function _interopRequireWildcard(r){if(r&&r.__esModule)return r;var e={};if(null!=r)for(var t in r)Object.prototype.hasOwnProperty.call(r,t)&&(e[t]=r[t]);return e["default"]=r,e}function _defaults(r,e){for(var t=Object.getOwnPropertyNames(e),o=0;o<t.length;o++){var a=t[o],i=Object.getOwnPropertyDescriptor(e,a);i&&i.configurable&&void 0===r[a]&&Object.defineProperty(r,a,i)}return r}Object.defineProperty(exports,"__esModule",{value:!0});var _idExtractorInterceptor=require("./idExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_idExtractorInterceptor));var _linkExtractorInterceptor=require("./linkExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_linkExtractorInterceptor));var _embeddedExtractorInterceptor=require("./embeddedExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_embeddedExtractorInterceptor));var _populateInterceptor=require("./populateInterceptor");_defaults(exports,_interopRequireWildcard(_populateInterceptor));var _paginationExtractorInterceptor=require("./paginationExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_paginationExtractorInterceptor));
 
-
-},{"./embeddedExtractorInterceptor":70,"./idExtractorInterceptor":71,"./linkExtractorInterceptor":73,"./paginationExtractorInterceptor":74,"./populateInterceptor":75}],73:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":69,"./idExtractorInterceptor":70,"./linkExtractorInterceptor":72,"./paginationExtractorInterceptor":73,"./populateInterceptor":74}],72:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),_get=function(e,t,r){for(var n=!0;n;){var a=e,o=t,i=r;s=u=l=void 0,n=!1;var s=Object.getOwnPropertyDescriptor(a,o);if(void 0!==s){if("value"in s)return s.value;var l=s.get;return void 0===l?void 0:l.call(i)}var u=Object.getPrototypeOf(a);if(null===u)return void 0;e=u,t=o,r=i,n=!0}},_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_lodashLangIsObject=require("lodash/lang/isObject"),_lodashLangIsObject2=_interopRequireDefault(_lodashLangIsObject),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),TAG_LINK="_links",TAG_HREF="href",TAG_SELF="self",LinkExtractorInterceptor=function(e){function t(e,r,n){_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this),this.tagLink=e||TAG_LINK,this.tagHref=r||TAG_HREF,this.tagSelf=n||TAG_SELF}return _inherits(t,e),_createClass(t,[{key:"response",value:function(e){var t=this;debug("link extractor start");var r=e.value;return e.hasValue()?(Array.isArray(r)?r.forEach(function(e){return t._extractOne(e)}):this._extractOne(r),debug("link extractor end"),e):(debug("link extractor end (do nothing)"),e)}},{key:"_extractOne",value:function(e){var t=!1;if(_lodashObjectHas2["default"](e,""+this.tagLink)&&_lodashLangIsObject2["default"](e[this.tagLink])){debug("add **links**"),t=!0;var r=this._formatLinks(e[this.tagLink]),n=r.finalLinks,a=r.selfLink;this._defineProperty(e,"**links**",n),this._defineProperty(e,"**selfLink**",a)}this._defineProperty(e,"**hasLinks**",t)}},{key:"_defineProperty",value:function(e,t,r){e.hasOwnProperty(t)?e[t]=r:Object.defineProperty(e,t,{value:r,writable:!0})}},{key:"_formatLinks",value:function(e){var t=this,r={},n=null;return Object.keys(e).forEach(function(a){var o=e[a];_lodashLangIsObject2["default"](o)&&_lodashObjectHas2["default"](o,t.tagHref)&&(a===t.tagSelf?n=o[t.tagHref]:r[a]=o[t.tagHref])}),{finalLinks:r,selfLink:n}}},{key:"responseError",value:function(e){console.error("link extractor responseError",e)}}]),t}(_vador.ResponseInterceptor);exports.LinkExtractorInterceptor=LinkExtractorInterceptor;
 
-
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],74:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],73:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var o=t[r];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,o.key,o)}}return function(t,r,o){return r&&e(t.prototype,r),o&&e(t,o),t}}(),_get=function(e,t,r){for(var o=!0;o;){var n=e,a=t,i=r;u=l=c=void 0,o=!1;var u=Object.getOwnPropertyDescriptor(n,a);if(void 0!==u){if("value"in u)return u.value;var c=u.get;return void 0===c?void 0:c.call(i)}var l=Object.getPrototypeOf(n);if(null===l)return void 0;e=l,t=a,r=i,o=!0}},_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),PAGE="page",PaginationExtractorInterceptor=function(e){function t(e){_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this),this.tagPage=e||PAGE}return _inherits(t,e),_createClass(t,[{key:"response",value:function(e){debug("pagination extractor start");var t=e.value;e.request;return _lodashObjectHas2["default"](t,this.tagPage)&&(e.page=t.page),debug("pagination extractor end"),e}},{key:"responseError",value:function(e){console.error("pagination extractor responseError",e)}}]),t}(_vador.ResponseInterceptor);exports.PaginationExtractorInterceptor=PaginationExtractorInterceptor;
 
-
-},{"debug":6,"lodash/object/has":36,"vador":50}],75:[function(require,module,exports){
+},{"debug":6,"lodash/object/has":36,"vador":50}],74:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _toConsumableArray(e){if(Array.isArray(e)){for(var r=0,t=Array(e.length);r<e.length;r++)t[r]=e[r];return t}return Array.from(e)}function _classCallCheck(e,r){if(!(e instanceof r))throw new TypeError("Cannot call a class as a function")}function _inherits(e,r){if("function"!=typeof r&&null!==r)throw new TypeError("Super expression must either be null or a function, not "+typeof r);e.prototype=Object.create(r&&r.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),r&&(e.__proto__=r)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,r){for(var t=0;t<r.length;t++){var n=r[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(r,t,n){return t&&e(r.prototype,t),n&&e(r,n),r}}(),_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),PopulateInterceptor=function(e){function r(){_classCallCheck(this,r),null!=e&&e.apply(this,arguments)}return _inherits(r,e),_createClass(r,[{key:"response",value:function(e){var r=this;debug("populate interceptor begin");var t=e.value,n=e.request;if(!e.hasValue()||!n.hasPopulate())return debug("Populate extractor end (do nothing)"),e;var o=[];return Array.isArray(t)?t.forEach(function(e){o.push(r._populateOne(e,n))}):o.push(this._populateOne(t,n)),Promise.all(o).then(function(){return debug("populate interceptor end"),e})}},{key:"_populateOne",value:function(e,r){debug("populate one");var t=e["**links**"],n=[],o=r.populates;return o.keys().forEach(function(u){if(u&&_lodashObjectHas2["default"](t,u)){var a=t[u],l=a.substring(0,a.indexOf(u)),s=r.restResource._createSubInstance(l,u),i=s.findAll(),p=o.getSubPopulate(u);Array.isArray(p)&&p.length&&i.populate.apply(i,_toConsumableArray(p)),i=i.sendRequest().then(function(r){e[u]=r.value}),n.push(i)}}),Promise.all(n).then(function(){return e})}},{key:"responseError",value:function(e){console.error("populate extractor responseError",e)}}]),r}(_vador.ResponseInterceptor);exports.PopulateInterceptor=PopulateInterceptor;
 
-
-},{"debug":6,"lodash/object/has":36,"vador":50}],76:[function(require,module,exports){
+},{"debug":6,"lodash/object/has":36,"vador":50}],75:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var a=0;a<t.length;a++){var u=t[a];u.enumerable=u.enumerable||!1,u.configurable=!0,"value"in u&&(u.writable=!0),Object.defineProperty(e,u.key,u)}}return function(t,a,u){return a&&e(t.prototype,a),u&&e(t,u),t}}(),_lodashObjectSet=require("lodash/object/set"),_lodashObjectSet2=_interopRequireDefault(_lodashObjectSet),_lodashLangIsObject=require("lodash/lang/isObject"),_lodashLangIsObject2=_interopRequireDefault(_lodashLangIsObject),Populate=function(){function e(){var t=this,a=void 0===arguments[0]?[]:arguments[0];_classCallCheck(this,e),Array.isArray(a)||(a=[]),this._populates={},a.forEach(function(e){t._populates=_lodashObjectSet2["default"](t._populates,e,{})})}return _createClass(e,[{key:"keys",value:function(){return Object.keys(this._populates)}},{key:"getPopulateArray",value:function(){return this._getPopulate(this._populates)}},{key:"_getPopulate",value:function(e){var t=this,a=[];return Object.keys(e).forEach(function(u){var r=e[u];if(_lodashLangIsObject2["default"](r)&&Object.keys(r).length){var n=t._getPopulate(r);n.forEach(function(e){return a.push(u+"."+e)})}else a.push(u)}),a}},{key:"getSubPopulate",value:function(e){var t=this._populates[e];return t?this._getPopulate(t):[]}},{key:"populates",get:function(){return this._populates}}]),e}();exports.Populate=Populate;
 
+},{"lodash/lang/isObject":34,"lodash/object/set":39}],76:[function(require,module,exports){
+"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],a=Object.getOwnPropertyDescriptor(r,i);a&&a.configurable&&void 0===e[i]&&Object.defineProperty(e,i,a)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug),_halRestClient=require("./halRestClient");_defaults(exports,_interopRequireWildcard(_halRestClient));var _halResource=require("./halResource");_defaults(exports,_interopRequireWildcard(_halResource));var _halRequest=require("./halRequest");_defaults(exports,_interopRequireWildcard(_halRequest));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
 
-},{"lodash/lang/isObject":34,"lodash/object/set":39}]},{},[69])(69)
+},{"./halRequest":66,"./halResource":67,"./halRestClient":68,"./interceptors":71,"debug":6}]},{},[76])(76)
 });
