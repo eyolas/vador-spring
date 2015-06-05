@@ -15,7 +15,7 @@ export class PaginationExtractorInterceptor extends ResponseInterceptor {
   response(response) {
     debug('pagination extractor start');
     let {value, request} = response;
-    if (has(value), this.tagPage) {
+    if (has(value, this.tagPage)) {
       response.page = value.page;
     }
 

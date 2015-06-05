@@ -47,7 +47,7 @@ export class Populate {
   getSubPopulate(sub) {
     let subPopulate = this._populates[sub];
     if (subPopulate) {
-      return this._getPopulate(subPopulate)
+      return this._getPopulate(subPopulate);
     } else {
       return [];
     }
