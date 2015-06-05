@@ -43,11 +43,6 @@ var Populate = (function () {
       return Object.keys(this._populates);
     }
   }, {
-    key: 'populates',
-    get: function () {
-      return this._populates;
-    }
-  }, {
     key: 'getPopulateArray',
     value: function getPopulateArray() {
       return this._getPopulate(this._populates);
@@ -80,6 +75,11 @@ var Populate = (function () {
       } else {
         return [];
       }
+    }
+  }, {
+    key: 'populates',
+    get: function () {
+      return this._populates;
     }
   }]);
 

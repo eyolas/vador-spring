@@ -78,10 +78,10 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
         debug('add **links**');
         hasRestLinks = true;
 
-        var _formatLinks = this._formatLinks(object[this.tagLink]);
+        var _formatLinks2 = this._formatLinks(object[this.tagLink]);
 
-        var finalLinks = _formatLinks.finalLinks;
-        var selfLink = _formatLinks.selfLink;
+        var finalLinks = _formatLinks2.finalLinks;
+        var selfLink = _formatLinks2.selfLink;
 
         this._defineProperty(object, '**links**', finalLinks);
         this._defineProperty(object, '**selfLink**', selfLink);

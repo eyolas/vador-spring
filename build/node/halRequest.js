@@ -50,11 +50,6 @@ var HalRequest = (function (_Request) {
       return this;
     }
   }, {
-    key: 'populates',
-    get: function () {
-      return new _populate.Populate(this._populates);
-    }
-  }, {
     key: 'hasPopulate',
     value: function hasPopulate() {
       var pop = this._populates;
@@ -96,6 +91,11 @@ var HalRequest = (function (_Request) {
       }
 
       return obj;
+    }
+  }, {
+    key: 'populates',
+    get: function () {
+      return new _populate.Populate(this._populates);
     }
   }]);
 

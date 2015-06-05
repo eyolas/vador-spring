@@ -105,10 +105,10 @@ var HalResource = (function (_RestResource) {
       if (links) {
         Object.keys(links).forEach(function (rel) {
           if (obj.hasOwnProperty(rel)) {
-            var _transformToLink = _this2._transformToLink(obj[rel], links[rel], rel);
+            var _transformToLink2 = _this2._transformToLink(obj[rel], links[rel], rel);
 
-            var type = _transformToLink.type;
-            var newValue = _transformToLink.newValue;
+            var type = _transformToLink2.type;
+            var newValue = _transformToLink2.newValue;
 
             obj[rel] = newValue;
           }

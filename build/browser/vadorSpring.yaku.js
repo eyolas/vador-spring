@@ -6418,48 +6418,756 @@ module.exports = function pctEncode(regexp) {
 }
 
 },{}],66:[function(require,module,exports){
+(function (__filename){
+/*
+ Yaku v0.2.0
+ (c) 2015 Yad Smood. http://ysmood.org
+ License MIT
+*/
+(function(root) {
+  var Yaku;
+  return Yaku = (function() {
+
+    /**
+    	 * This class follows the [Promises/A+](https://promisesaplus.com) and
+    	 * [ES6](http://people.mozilla.org/~jorendorff/es6-draft.html#sec-promise-objects) spec
+    	 * with some extra helpers.
+    	 * @param  {Function} executor Function object with two arguments resolve and reject.
+    	 * The first argument fulfills the promise, the second argument rejects it.
+    	 * We can call these functions, once our operation is completed.
+    	 * @example
+    	 * ```coffee
+    	 * Promise = require 'yaku'
+    	 * p = new Promise (resolve, reject) ->
+    	 * 	setTimeout ->
+    	 * 		if Math.random() > 0.5
+    	 * 			resolve 'ok'
+    	 * 		else
+    	 * 			reject 'no'
+    	 * ```
+     */
+    var $circularChain, $invalid_argument, $noop, $pending, $promiseTrace, $rejected, $resolved, $settlerTrace, $tryCatchFn, $tryErr, addHandler, assertIterable, callHanler, genScheduler, genSettler, genTraceInfo, genTryCatcher, genTypeError, getThen, isFunction, isLongStackTrace, isObject, newEmptyYaku, release, scheduleHandler, scheduleUnhandledRejection, settlePromise, settleWithX, settleXthen, tryCatcher;
+
+    function Yaku(executor) {
+      var err;
+      if (isLongStackTrace) {
+        this[$promiseTrace] = genTraceInfo();
+      }
+      if (executor === $noop) {
+        return;
+      }
+      err = genTryCatcher(executor)(genSettler(this, $resolved), genSettler(this, $rejected));
+      if (err === $tryErr) {
+        settlePromise(this, $rejected, err.e);
+      }
+    }
+
+
+    /**
+    	 * Appends fulfillment and rejection handlers to the promise,
+    	 * and returns a new promise resolving to the return value of the called handler.
+    	 * @param  {Function} onFulfilled Optional. Called when the Promise is resolved.
+    	 * @param  {Function} onRejected  Optional. Called when the Promise is rejected.
+    	 * @return {Yaku} It will return a new Yaku which will resolve or reject after
+    	 * @example
+    	 * the current Promise.
+    	 * ```coffee
+    	 * Promise = require 'yaku'
+    	 * p = Promise.resolve 10
+    	 *
+    	 * p.then (v) ->
+    	 * 	console.log v
+    	 * ```
+     */
+
+    Yaku.prototype.then = function(onFulfilled, onRejected) {
+      return addHandler(this, newEmptyYaku(), onFulfilled, onRejected);
+    };
+
+
+    /**
+    	 * The `catch()` method returns a Promise and deals with rejected cases only.
+    	 * It behaves the same as calling `Promise.prototype.then(undefined, onRejected)`.
+    	 * @param  {Function} onRejected A Function called when the Promise is rejected.
+    	 * This function has one argument, the rejection reason.
+    	 * @return {Yaku} A Promise that deals with rejected cases only.
+    	 * @example
+    	 * ```coffee
+    	 * Promise = require 'yaku'
+    	 * p = Promise.reject 10
+    	 *
+    	 * p.catch (v) ->
+    	 * 	console.log v
+    	 * ```
+     */
+
+    Yaku.prototype["catch"] = function(onRejected) {
+      return this.then(void 0, onRejected);
+    };
+
+
+    /**
+    	 * The `Promise.resolve(value)` method returns a Promise object that is resolved with the given value.
+    	 * If the value is a thenable (i.e. has a then method), the returned promise will "follow" that thenable,
+    	 * adopting its eventual state; otherwise the returned promise will be fulfilled with the value.
+    	 * @param  {Any} value Argument to be resolved by this Promise.
+    	 * Can also be a Promise or a thenable to resolve.
+    	 * @return {Yaku}
+    	 * @example
+    	 * ```coffee
+    	 * Promise = require 'yaku'
+    	 * p = Promise.resolve 10
+    	 * ```
+     */
+
+    Yaku.resolve = function(value) {
+      if (value instanceof Yaku) {
+        return value;
+      }
+      return settleWithX(newEmptyYaku(), value);
+    };
+
+
+    /**
+    	 * The `Promise.reject(reason)` method returns a Promise object that is rejected with the given reason.
+    	 * @param  {Any} reason Reason why this Promise rejected.
+    	 * @return {Yaku}
+    	 * @example
+    	 * ```coffee
+    	 * Promise = require 'yaku'
+    	 * p = Promise.reject 10
+    	 * ```
+     */
+
+    Yaku.reject = function(reason) {
+      return settlePromise(newEmptyYaku(), $rejected, reason);
+    };
+
+
+    /**
+    	 * The `Promise.race(iterable)` method returns a promise that resolves or rejects
+    	 * as soon as one of the promises in the iterable resolves or rejects,
+    	 * with the value or reason from that promise.
+    	 * @param  {iterable} iterable An iterable object, such as an Array.
+    	 * @return {Yaku} The race function returns a Promise that is settled
+    	 * the same way as the first passed promise to settle.
+    	 * It resolves or rejects, whichever happens first.
+    	 * @example
+    	 * ```coffee
+    	 * Promise = require 'yaku'
+    	 * Promise.race [
+    	 * 	123
+    	 * 	Promise.resolve 0
+    	 * ]
+    	 * .then (value) ->
+    	 * 	console.log value # => 123
+    	 * ```
+     */
+
+    Yaku.race = function(iterable) {
+      var i, len, p;
+      assertIterable(iterable);
+      len = iterable.length;
+      if (len === 0) {
+        return Yaku.resolve([]);
+      }
+      p = newEmptyYaku();
+      i = 0;
+      while (i < len) {
+        settleWithX(p, iterable[i++]);
+        if (p._state !== $pending) {
+          break;
+        }
+      }
+      return p;
+    };
+
+
+    /**
+    	 * The `Promise.all(iterable)` method returns a promise that resolves when
+    	 * all of the promises in the iterable argument have resolved.
+    	 *
+    	 * The result is passed as an array of values from all the promises.
+    	 * If something passed in the iterable array is not a promise,
+    	 * it's converted to one by Promise.resolve. If any of the passed in promises rejects,
+    	 * the all Promise immediately rejects with the value of the promise that rejected,
+    	 * discarding all the other promises whether or not they have resolved.
+    	 * @param  {iterable} iterable An iterable object, such as an Array.
+    	 * @return {Yaku}
+    	 * @example
+    	 * ```coffee
+    	 * Promise = require 'yaku'
+    	 * Promise.all [
+    	 * 	123
+    	 * 	Promise.resolve 0
+    	 * ]
+    	 * .then (values) ->
+    	 * 	console.log values # => [123, 0]
+    	 * ```
+     */
+
+    Yaku.all = function(iterable) {
+      var convertor, countDown, i, iter, len, onRejected, p1, res;
+      assertIterable(iterable);
+      convertor = Yaku.resolve;
+      len = countDown = iterable.length;
+      if (len === 0) {
+        return convertor([]);
+      }
+      p1 = newEmptyYaku();
+      res = [];
+      i = 0;
+      onRejected = function(reason) {
+        settlePromise(p1, $rejected, reason);
+      };
+      iter = function(i) {
+        convertor(iterable[i]).then(function(value) {
+          res[i] = value;
+          if (!--countDown) {
+            settlePromise(p1, $resolved, res);
+          }
+        }, onRejected);
+      };
+      while (i < len) {
+        iter(i++);
+      }
+      return p1;
+    };
+
+
+    /**
+    	 * Catch all possibly unhandled rejections. If you want to use specific
+    	 * format to display the error stack, overwrite it.
+    	 * If it is set, auto `console.error` unhandled rejection will be disabed.
+    	 * @param {Any} reason The rejection reason.
+    	 * @example
+    	 * ```coffee
+    	 * Promise = require 'yaku'
+    	 * Promise.onUnhandledRejection = (reason) ->
+    	 * 	console.error reason
+    	 *
+    	 * # The console will log an unhandled rejection error message.
+    	 * Promise.reject('my reason')
+    	 *
+    	 * # The below won't log the unhandled rejection error message.
+    	 * Promise.reject('v').catch ->
+    	 * ```
+     */
+
+    Yaku.onUnhandledRejection = function(reason, p) {
+      var format, hStack;
+      if (!isObject(console)) {
+        return;
+      }
+      hStack = '\n';
+      if (isLongStackTrace && p[$promiseTrace]) {
+        if (p[$settlerTrace]) {
+          hStack += p[$settlerTrace];
+        }
+        while (p) {
+          hStack += p[$promiseTrace];
+          p = p._pre;
+        }
+      }
+      format = function(str) {
+        return (typeof __filename === 'string' ? str.replace(RegExp(".+" + __filename + ".+\\n?", "g"), '') : str).replace(/\n$/, '');
+      };
+      return console.error('Unhandled Rejection:', (reason ? reason.stack ? format(reason.stack) : reason : reason), format(hStack));
+    };
+
+    isLongStackTrace = false;
+
+
+    /**
+    	 * It is used to enable the long stack trace.
+    	 * Once it is enabled, it can't be reverted.
+    	 * @example
+    	 * ```coffee
+    	 * Promise = require 'yaku'
+    	 * Promise.enableLongStackTrace()
+    	 * ```
+     */
+
+    Yaku.enableLongStackTrace = function() {
+      isLongStackTrace = true;
+    };
+
+
+    /*
+    	 * All static variable name will begin with `$`. Such as `$rejected`.
+    	 * @private
+     */
+
+    $tryCatchFn = null;
+
+    $tryErr = {
+      e: null
+    };
+
+    $noop = {};
+
+    isObject = function(obj) {
+      return typeof obj === 'object';
+    };
+
+    isFunction = function(obj) {
+      return typeof obj === 'function';
+    };
+
+
+    /**
+    	 * Release the specified key of an object.
+    	 * @private
+    	 * @param  {Object} obj
+    	 * @param  {String | Number} key
+     */
+
+    release = function(obj, key) {
+      obj[key] = void 0;
+    };
+
+
+    /**
+    	 * Wrap a function into a try-catch.
+    	 * @private
+    	 * @return {Any | $tryErr}
+     */
+
+    tryCatcher = function() {
+      var e;
+      try {
+        return $tryCatchFn.apply(this, arguments);
+      } catch (_error) {
+        e = _error;
+        $tryErr.e = e;
+        return $tryErr;
+      }
+    };
+
+
+    /**
+    	 * Generate a try-catch wrapped function.
+    	 * @private
+    	 * @param  {Function} fn
+    	 * @return {Function}
+     */
+
+    genTryCatcher = function(fn) {
+      $tryCatchFn = fn;
+      return tryCatcher;
+    };
+
+
+    /**
+    	 * Generate a scheduler.
+    	 * @private
+    	 * @param  {Integer}  initQueueSize
+    	 * @param  {Function} fn `(Yaku, Value) ->` The schedule handler.
+    	 * @return {Function} `(Yaku, Value) ->` The scheduler.
+     */
+
+    genScheduler = function(initQueueSize, fn) {
+
+      /**
+      		 * All async promise will be scheduled in
+      		 * here, so that they can be execute on the next tick.
+      		 * @private
+       */
+      var flush, fnQueue, fnQueueLen, scheduleFlush;
+      fnQueue = Array(initQueueSize);
+      fnQueueLen = 0;
+
+      /**
+      		 * Run all queued functions.
+      		 * @private
+       */
+      flush = function() {
+        var i, p, pIndex, v, vIndex;
+        i = 0;
+        while (i < fnQueueLen) {
+          pIndex = i++;
+          vIndex = i++;
+          p = fnQueue[pIndex];
+          v = fnQueue[vIndex];
+          release(fnQueue, pIndex);
+          release(fnQueue, vIndex);
+          fn(p, v);
+        }
+        fnQueueLen = 0;
+        fnQueue.length = initQueueSize;
+      };
+
+      /**
+      		 * Schedule a flush task on the next tick.
+      		 * @private
+      		 * @param {Function} fn The flush task.
+       */
+      scheduleFlush = (function() {
+        var content, doc, mutationObserver, nextTick, node, observer;
+        doc = root.document;
+        try {
+          nextTick = root.process.nextTick;
+          return function() {
+            nextTick(flush);
+          };
+        } catch (_error) {}
+        if (nextTick = root.setImmediate) {
+          return function() {
+            nextTick(flush);
+          };
+        } else if (mutationObserver = root.MutationObserver) {
+          content = 1;
+          node = doc.createTextNode('');
+          observer = new mutationObserver(flush);
+          observer.observe(node, {
+            characterData: true
+          });
+          return function() {
+            node.data = (content = -content);
+          };
+        } else {
+          return function() {
+            setTimeout(flush);
+          };
+        }
+      })();
+      return function(p, v) {
+        fnQueue[fnQueueLen++] = p;
+        fnQueue[fnQueueLen++] = v;
+        if (fnQueueLen === 2) {
+          scheduleFlush();
+        }
+      };
+    };
+
+
+    /**
+    	 * Check if a variable is an iterable object.
+    	 * @private
+    	 * @param  {Any}  obj
+    	 * @return {Boolean}
+     */
+
+    assertIterable = function(obj) {
+      if (obj instanceof Array) {
+        return;
+      }
+      throw genTypeError($invalid_argument);
+    };
+
+
+    /**
+    	 * Generate type error object.
+    	 * @private
+    	 * @param  {String} msg
+    	 * @return {TypeError}
+     */
+
+    genTypeError = function(msg) {
+      return new TypeError(msg);
+    };
+
+    genTraceInfo = function(noTitle) {
+      return (new Error).stack.replace('Error\n', (noTitle ? '' : ' From previous event:\n'));
+    };
+
+
+    /**
+    	 * These are some static symbolys.
+    	 * @private
+     */
+
+    $rejected = 0;
+
+    $resolved = 1;
+
+    $pending = 2;
+
+    $promiseTrace = '_pStack';
+
+    $settlerTrace = '_sStack';
+
+    $circularChain = 'promise_circular_chain';
+
+    $invalid_argument = 'invalid_argument';
+
+    Yaku.prototype._state = $pending;
+
+
+    /**
+    	 * The number of current promises that attach to this Yaku instance.
+    	 * @private
+     */
+
+    Yaku.prototype._pCount = 0;
+
+    Yaku.prototype._pre = null;
+
+    Yaku.prototype._hasUnhandled = false;
+
+
+    /**
+    	 * Create an empty promise.
+    	 * @private
+    	 * @return {Yaku}
+     */
+
+    newEmptyYaku = function() {
+      return new Yaku($noop);
+    };
+
+
+    /**
+    	 * It will produce a settlePromise function to user.
+    	 * Such as the resolve and reject in this `new Yaku (resolve, reject) ->`.
+    	 * @private
+    	 * @param  {Yaku} self
+    	 * @param  {Integer} state The value is one of `$pending`, `$resolved` or `$rejected`.
+    	 * @return {Function} `(value) -> undefined` A resolve or reject function.
+     */
+
+    genSettler = function(self, state) {
+      return function(value) {
+        if (isLongStackTrace) {
+          self[$settlerTrace] = genTraceInfo(true);
+        }
+        return settlePromise(self, state, value);
+      };
+    };
+
+
+    /**
+    	 * Link the promise1 to the promise2.
+    	 * @private
+    	 * @param {Yaku} p1
+    	 * @param {Yaku} p2
+    	 * @param {Function} onFulfilled
+    	 * @param {Function} onRejected
+     */
+
+    addHandler = function(p1, p2, onFulfilled, onRejected) {
+      if (isFunction(onFulfilled)) {
+        p2._onFulfilled = onFulfilled;
+      }
+      if (isFunction(onRejected)) {
+        p2._onRejected = onRejected;
+      }
+      p2._pre = p1;
+      if (p1._state === $pending) {
+        p1[p1._pCount++] = p2;
+      } else {
+        scheduleHandler(p1, p2);
+      }
+      return p2;
+    };
+
+
+    /**
+    	 * Resolve the value returned by onFulfilled or onRejected.
+    	 * @private
+    	 * @param {Yaku} p1
+    	 * @param {Yaku} p2
+     */
+
+    scheduleHandler = genScheduler(1000, function(p1, p2) {
+      var handler, x;
+      handler = p1._state ? p2._onFulfilled : p2._onRejected;
+      if (handler === void 0) {
+        settlePromise(p2, p1._state, p1._value);
+        return;
+      }
+      x = genTryCatcher(callHanler)(handler, p1._value);
+      if (x === $tryErr) {
+        settlePromise(p2, $rejected, x.e);
+        return;
+      }
+      settleWithX(p2, x);
+    });
+
+    scheduleUnhandledRejection = genScheduler(100, function(p) {
+      var pre;
+      pre = p;
+      while (pre) {
+        if (pre._hasUnhandled) {
+          return;
+        }
+        pre._hasUnhandled = true;
+        pre = pre._pre;
+      }
+      Yaku.onUnhandledRejection(p._value, p);
+    });
+
+    callHanler = function(handler, value) {
+      return handler(value);
+    };
+
+
+    /**
+    	 * Resolve or reject a promise.
+    	 * @private
+    	 * @param  {Yaku} p
+    	 * @param  {Integer} state
+    	 * @param  {Any} value
+     */
+
+    settlePromise = function(p, state, value) {
+      var i, len;
+      if (p._state !== $pending) {
+        return;
+      }
+      p._state = state;
+      p._value = value;
+      if (state === $rejected) {
+        scheduleUnhandledRejection(p);
+      }
+      i = 0;
+      len = p._pCount;
+      while (i < len) {
+        scheduleHandler(p, p[i]);
+        release(p, i++);
+      }
+      return p;
+    };
+
+
+    /**
+    	 * Resolve or reject primise with value x. The x can also be a thenable.
+    	 * @private
+    	 * @param {Yaku} p
+    	 * @param {Any | Thenable} x A normal value or a thenable.
+     */
+
+    settleWithX = function(p, x) {
+      var xthen;
+      if (x === p && x) {
+        settlePromise(p, $rejected, genTypeError($circularChain));
+        return;
+      }
+      if (x !== null && (isFunction(x) || isObject(x))) {
+        xthen = genTryCatcher(getThen)(x);
+        if (xthen === $tryErr) {
+          settlePromise(p, $rejected, xthen.e);
+          return;
+        }
+        if (isFunction(xthen)) {
+          if (x instanceof Yaku) {
+            x._pre = p;
+          }
+          settleXthen(p, x, xthen);
+        } else {
+          settlePromise(p, $resolved, x);
+        }
+      } else {
+        settlePromise(p, $resolved, x);
+      }
+      return p;
+    };
+
+
+    /**
+    	 * Try to get a promise's then method.
+    	 * @private
+    	 * @param  {Thenable} x
+    	 * @return {Function}
+     */
+
+    getThen = function(x) {
+      return x.then;
+    };
+
+
+    /**
+    	 * Resolve then with its promise.
+    	 * @private
+    	 * @param  {Yaku} p
+    	 * @param  {Thenable} x
+    	 * @param  {Function} xthen
+     */
+
+    settleXthen = function(p, x, xthen) {
+      var err;
+      err = genTryCatcher(xthen).call(x, function(y) {
+        if (!x) {
+          return;
+        }
+        x = null;
+        settleWithX(p, y);
+      }, function(r) {
+        if (!x) {
+          return;
+        }
+        x = null;
+        settlePromise(p, $rejected, r);
+      });
+      if (err === $tryErr && x) {
+        settlePromise(p, $rejected, err.e);
+        x = null;
+      }
+    };
+
+    try {
+      module.exports = Yaku;
+    } catch (_error) {
+      try {
+        define(function() {
+          return Yaku;
+        });
+      } catch (_error) {
+        root.Yaku = Yaku;
+      }
+    }
+
+    return Yaku;
+
+  })();
+})(this || window);
+
+}).call(this,"/node_modules/yaku/dist/yaku.js")
+},{}],67:[function(require,module,exports){
 "use strict";function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),_get=function(e,t,r){for(var n=!0;n;){var o=e,i=t,a=r;s=c=u=void 0,n=!1;var s=Object.getOwnPropertyDescriptor(o,i);if(void 0!==s){if("value"in s)return s.value;var u=s.get;return void 0===u?void 0:u.call(a)}var c=Object.getPrototypeOf(o);if(null===c)return void 0;e=c,t=i,r=a,n=!0}},_vador=require("vador"),_populate=require("./populate"),_interceptors=require("./interceptors/"),HalRequest=function(e){function t(e,r,n){var o=void 0===arguments[3]?{}:arguments[3];_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this,e,r,n,o),this._populates=[],this._relations=this._config.relations||null,this._restKeys.push("**links**","**selfLink**","**hasLinks**");var i=[new _interceptors.PaginationExtractorInterceptor,new _interceptors.EmbeddedExtractorInterceptor,new _interceptors.LinkExtractorInterceptor,new _interceptors.IdExtractorInterceptor,new _interceptors.PopulateInterceptor];this._interceptors=i.concat(this._interceptors)}return _inherits(t,e),_createClass(t,[{key:"populate",value:function(){for(var e,t=arguments.length,r=Array(t),n=0;t>n;n++)r[n]=arguments[n];return(e=this._populates).push.apply(e,r),this}},{key:"hasPopulate",value:function(){var e=this._populates;return Array.isArray(e)&&e.length>0}},{key:"_proxifyOne",value:function(e,r){var n=this,o=_get(Object.getPrototypeOf(t.prototype),"_proxifyOne",this).call(this,e),i=e["**links**"];return i&&Object.keys(i).forEach(function(e){if(!o.hasOwnProperty(e)){var t=i[e],r=t.substring(0,t.indexOf(e)),a=n.restResource._createSubInstance(r,e);!function(t){var r=void 0;Object.defineProperty(o,""+e+"Async",{enumerable:!1,get:function(){return void 0!==r?Promise.resolve(r):t.findAll().sendRequest().then(function(e){return r=e.value,Promise.resolve(r)})}})}(a)}}),o}},{key:"populates",get:function(){return new _populate.Populate(this._populates)}}]),t}(_vador.Request);exports.HalRequest=HalRequest;
 
 
-},{"./interceptors/":72,"./populate":76,"vador":50}],67:[function(require,module,exports){
+},{"./interceptors/":73,"./populate":77,"vador":50}],68:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,r){if(!(e instanceof r))throw new TypeError("Cannot call a class as a function")}function _inherits(e,r){if("function"!=typeof r&&null!==r)throw new TypeError("Super expression must either be null or a function, not "+typeof r);e.prototype=Object.create(r&&r.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),r&&(e.__proto__=r)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,r){for(var t=0;t<r.length;t++){var n=r[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(r,t,n){return t&&e(r.prototype,t),n&&e(r,n),r}}(),_get=function(e,r,t){for(var n=!0;n;){var a=e,o=r,u=t;s=l=i=void 0,n=!1;var s=Object.getOwnPropertyDescriptor(a,o);if(void 0!==s){if("value"in s)return s.value;var i=s.get;return void 0===i?void 0:i.call(u)}var l=Object.getPrototypeOf(a);if(null===l)return void 0;e=l,r=o,t=u,n=!0}},_vador=require("vador"),_lodashObjectAssign=require("lodash/object/assign"),_lodashObjectAssign2=_interopRequireDefault(_lodashObjectAssign),_halRequest=require("./halRequest"),HalResource=function(e){function r(){_classCallCheck(this,r),null!=e&&e.apply(this,arguments)}return _inherits(r,e),_createClass(r,[{key:"_createSubInstance",value:function(e,t,n){return new r(e,t,n)}},{key:"constructBaseRequest",value:function(){var e=void 0===arguments[0]?"get":arguments[0],r=void 0===arguments[1]?Array:arguments[1],t=void 0===arguments[2]?"":arguments[2],n=new _halRequest.HalRequest(this._baseUrl,this.resourceName,this,this._config);return n.responseType=r,n.url=this._baseUrl+this.resourceName+t,n.method=e,n}},{key:"_transformToLink",value:function(e,r,t){var n=this,a=null,o=r.href,u=r.type;if(null===e)return{type:u,newValue:a};if("many"===u){if(!Array.isArray(e))throw new Error("For relation "+t+", the value must be an Array");a=[],e.forEach(function(e){var r=n._transformToLinkOne(e,o,t);null!==r&&a.push(r)})}else a=this._transformToLinkOne(e,o,t);return{type:u,newValue:a}}},{key:"_transformToLinkOne",value:function(e,r,t){if(null==e)return null;if(e.id)return(""+r+"/"+e.id).replace(/\/{2,}/,"/");throw new Error("For relation "+t+", the value must have id")}},{key:"save",value:function(e){var t=this,n=_lodashObjectAssign2["default"]({},this._relations||{});return n&&Object.keys(n).forEach(function(r){if(e.hasOwnProperty(r)){var a=t._transformToLink(e[r],n[r],r),o=(a.type,a.newValue);e[r]=o}}),_get(Object.getPrototypeOf(r.prototype),"save",this).call(this,e)}}]),r}(_vador.RestResource);exports.HalResource=HalResource;
 
 
-},{"./halRequest":66,"lodash/object/assign":35,"vador":50}],68:[function(require,module,exports){
+},{"./halRequest":67,"lodash/object/assign":35,"vador":50}],69:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),_vador=require("vador"),_halResource=require("./halResource"),_lodashObjectAssign=require("lodash/object/assign"),_lodashObjectAssign2=_interopRequireDefault(_lodashObjectAssign),HalRestClient=function(e){function t(){_classCallCheck(this,t),null!=e&&e.apply(this,arguments)}return _inherits(t,e),_createClass(t,[{key:"instanciateResource",value:function(e,t){return new _halResource.HalResource(this._baseUrl,e,t)}}]),t}(_vador.RestClient);exports.HalRestClient=HalRestClient;
 
 
-},{"./halResource":67,"lodash/object/assign":35,"vador":50}],69:[function(require,module,exports){
-"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],a=Object.getOwnPropertyDescriptor(r,i);a&&a.configurable&&void 0===e[i]&&Object.defineProperty(e,i,a)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug),_halRestClient=require("./halRestClient");_defaults(exports,_interopRequireWildcard(_halRestClient));var _halResource=require("./halResource");_defaults(exports,_interopRequireWildcard(_halResource));var _halRequest=require("./halRequest");_defaults(exports,_interopRequireWildcard(_halRequest));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
+},{"./halResource":68,"lodash/object/assign":35,"vador":50}],70:[function(require,module,exports){
+(function (global){
+"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],a=Object.getOwnPropertyDescriptor(r,i);a&&a.configurable&&void 0===e[i]&&Object.defineProperty(e,i,a)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug);global.Promise=require("yaku");var _halRestClient=require("./halRestClient");_defaults(exports,_interopRequireWildcard(_halRestClient));var _halResource=require("./halResource");_defaults(exports,_interopRequireWildcard(_halResource));var _halRequest=require("./halRequest");_defaults(exports,_interopRequireWildcard(_halRequest));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
 
 
-},{"./halRequest":66,"./halResource":67,"./halRestClient":68,"./interceptors":72,"debug":6}],70:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./halRequest":67,"./halResource":68,"./halRestClient":69,"./interceptors":73,"debug":6,"yaku":66}],71:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var a=t[r];a.enumerable=a.enumerable||!1,a.configurable=!0,"value"in a&&(a.writable=!0),Object.defineProperty(e,a.key,a)}}return function(t,r,a){return r&&e(t.prototype,r),a&&e(t,a),t}}(),_get=function(e,t,r){for(var a=!0;a;){var n=e,o=t,d=r;i=c=u=void 0,a=!1;var i=Object.getOwnPropertyDescriptor(n,o);if(void 0!==i){if("value"in i)return i.value;var u=i.get;return void 0===u?void 0:u.call(d)}var c=Object.getPrototypeOf(n);if(null===c)return void 0;e=c,t=o,r=d,a=!0}},_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),_lodashLangIsObject=require("lodash/lang/isObject"),_lodashLangIsObject2=_interopRequireDefault(_lodashLangIsObject),debug=new _debug2["default"]("halClient [Interceptor]"),EMBEDDED="_embedded",EmbeddedExtractorInterceptor=function(e){function t(e){_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this),this.tagEmbedded=e||EMBEDDED}return _inherits(t,e),_createClass(t,[{key:"response",value:function(e){debug("embedded extractor start");var t=e.value;e.request;return e.value=this._extractEmbbeded(t),debug("embedded extractor end"),e}},{key:"_extractEmbbeded",value:function(e){if(_lodashObjectHas2["default"](e,this.tagEmbedded)){e=e[this.tagEmbedded];var t=Object.keys(e);if(1!==t.length)throw new Error("an embedded must have an object with one key");if(t[0]===this.tagEmbedded)throw new Error("an embedded can't have directly an embedded");Array.isArray(e[t[0]])&&(e=e[t[0]])}return this._internalExtractEmbbeded(e)}},{key:"_internalExtractEmbbeded",value:function(e){var t=this;if(Array.isArray(e))return e.map(function(e){return t._internalExtractEmbbeded(e)});if(!_lodashLangIsObject2["default"](e))return e;var r=function(){var r={};return Object.keys(e).forEach(function(a){var n=e[a];if(a===t.tagEmbedded&&_lodashLangIsObject2["default"](n)){if(!_lodashLangIsObject2["default"](n)||1!==Object.keys(n).length)throw new Error("an embedded must have an object with one key");if(a=Object.keys(n)[0],a===t.tagEmbedded)throw new Error("an embedded can't have directly an embedded");n=n[a]}r[a]=t._internalExtractEmbbeded(n)}),{v:r}}();return"object"==typeof r?r.v:void 0}},{key:"responseError",value:function(e){console.error("embedded extractor responseError",e)}}]),t}(_vador.ResponseInterceptor);exports.EmbeddedExtractorInterceptor=EmbeddedExtractorInterceptor;
 
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],71:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],72:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,r){if(!(e instanceof r))throw new TypeError("Cannot call a class as a function")}function _inherits(e,r){if("function"!=typeof r&&null!==r)throw new TypeError("Super expression must either be null or a function, not "+typeof r);e.prototype=Object.create(r&&r.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),r&&(e.__proto__=r)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,r){for(var t=0;t<r.length;t++){var n=r[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(r,t,n){return t&&e(r.prototype,t),n&&e(r,n),r}}(),_vador=require("vador"),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),REGEX_LASTPART=/\/([^\/]*)\/?$/,IdExtractorInterceptor=function(e){function r(){_classCallCheck(this,r),null!=e&&e.apply(this,arguments)}return _inherits(r,e),_createClass(r,[{key:"response",value:function(e){var r=this;debug("id extractor start");var t=e.value;return e.hasValue()?(Array.isArray(t)?t.forEach(function(e){return r._extractId(e)}):this._extractId(t),debug("id extractor end"),e):(debug("id extractor end (do nothing)"),e)}},{key:"_extractId",value:function(e){if(!e.id){var r=e["**selfLink**"];if(r){var t=r.match(REGEX_LASTPART);t.length>1&&(e.id=t[1])}}}},{key:"responseError",value:function(e){console.error("id extractor responseError"),console.error(e.stack)}}]),r}(_vador.ResponseInterceptor);exports.IdExtractorInterceptor=IdExtractorInterceptor;
 
 
-},{"debug":6,"vador":50}],72:[function(require,module,exports){
+},{"debug":6,"vador":50}],73:[function(require,module,exports){
 "use strict";function _interopRequireWildcard(r){if(r&&r.__esModule)return r;var e={};if(null!=r)for(var t in r)Object.prototype.hasOwnProperty.call(r,t)&&(e[t]=r[t]);return e["default"]=r,e}function _defaults(r,e){for(var t=Object.getOwnPropertyNames(e),o=0;o<t.length;o++){var a=t[o],i=Object.getOwnPropertyDescriptor(e,a);i&&i.configurable&&void 0===r[a]&&Object.defineProperty(r,a,i)}return r}Object.defineProperty(exports,"__esModule",{value:!0});var _idExtractorInterceptor=require("./idExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_idExtractorInterceptor));var _linkExtractorInterceptor=require("./linkExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_linkExtractorInterceptor));var _embeddedExtractorInterceptor=require("./embeddedExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_embeddedExtractorInterceptor));var _populateInterceptor=require("./populateInterceptor");_defaults(exports,_interopRequireWildcard(_populateInterceptor));var _paginationExtractorInterceptor=require("./paginationExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_paginationExtractorInterceptor));
 
 
-},{"./embeddedExtractorInterceptor":70,"./idExtractorInterceptor":71,"./linkExtractorInterceptor":73,"./paginationExtractorInterceptor":74,"./populateInterceptor":75}],73:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":71,"./idExtractorInterceptor":72,"./linkExtractorInterceptor":74,"./paginationExtractorInterceptor":75,"./populateInterceptor":76}],74:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),_get=function(e,t,r){for(var n=!0;n;){var a=e,o=t,i=r;s=u=l=void 0,n=!1;var s=Object.getOwnPropertyDescriptor(a,o);if(void 0!==s){if("value"in s)return s.value;var l=s.get;return void 0===l?void 0:l.call(i)}var u=Object.getPrototypeOf(a);if(null===u)return void 0;e=u,t=o,r=i,n=!0}},_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_lodashLangIsObject=require("lodash/lang/isObject"),_lodashLangIsObject2=_interopRequireDefault(_lodashLangIsObject),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),TAG_LINK="_links",TAG_HREF="href",TAG_SELF="self",LinkExtractorInterceptor=function(e){function t(e,r,n){_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this),this.tagLink=e||TAG_LINK,this.tagHref=r||TAG_HREF,this.tagSelf=n||TAG_SELF}return _inherits(t,e),_createClass(t,[{key:"response",value:function(e){var t=this;debug("link extractor start");var r=e.value;return e.hasValue()?(Array.isArray(r)?r.forEach(function(e){return t._extractOne(e)}):this._extractOne(r),debug("link extractor end"),e):(debug("link extractor end (do nothing)"),e)}},{key:"_extractOne",value:function(e){var t=!1;if(_lodashObjectHas2["default"](e,""+this.tagLink)&&_lodashLangIsObject2["default"](e[this.tagLink])){debug("add **links**"),t=!0;var r=this._formatLinks(e[this.tagLink]),n=r.finalLinks,a=r.selfLink;this._defineProperty(e,"**links**",n),this._defineProperty(e,"**selfLink**",a)}this._defineProperty(e,"**hasLinks**",t)}},{key:"_defineProperty",value:function(e,t,r){e.hasOwnProperty(t)?e[t]=r:Object.defineProperty(e,t,{value:r,writable:!0})}},{key:"_formatLinks",value:function(e){var t=this,r={},n=null;return Object.keys(e).forEach(function(a){var o=e[a];_lodashLangIsObject2["default"](o)&&_lodashObjectHas2["default"](o,t.tagHref)&&(a===t.tagSelf?n=o[t.tagHref]:r[a]=o[t.tagHref])}),{finalLinks:r,selfLink:n}}},{key:"responseError",value:function(e){console.error("link extractor responseError",e)}}]),t}(_vador.ResponseInterceptor);exports.LinkExtractorInterceptor=LinkExtractorInterceptor;
 
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],74:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],75:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var o=t[r];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,o.key,o)}}return function(t,r,o){return r&&e(t.prototype,r),o&&e(t,o),t}}(),_get=function(e,t,r){for(var o=!0;o;){var n=e,a=t,i=r;u=l=c=void 0,o=!1;var u=Object.getOwnPropertyDescriptor(n,a);if(void 0!==u){if("value"in u)return u.value;var c=u.get;return void 0===c?void 0:c.call(i)}var l=Object.getPrototypeOf(n);if(null===l)return void 0;e=l,t=a,r=i,o=!0}},_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),PAGE="page",PaginationExtractorInterceptor=function(e){function t(e){_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this),this.tagPage=e||PAGE}return _inherits(t,e),_createClass(t,[{key:"response",value:function(e){debug("pagination extractor start");var t=e.value;e.request;return _lodashObjectHas2["default"](t,this.tagPage)&&(e.page=t.page),debug("pagination extractor end"),e}},{key:"responseError",value:function(e){console.error("pagination extractor responseError",e)}}]),t}(_vador.ResponseInterceptor);exports.PaginationExtractorInterceptor=PaginationExtractorInterceptor;
 
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],75:[function(require,module,exports){
+},{"debug":6,"lodash/object/has":36,"vador":50}],76:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _toConsumableArray(e){if(Array.isArray(e)){for(var r=0,t=Array(e.length);r<e.length;r++)t[r]=e[r];return t}return Array.from(e)}function _classCallCheck(e,r){if(!(e instanceof r))throw new TypeError("Cannot call a class as a function")}function _inherits(e,r){if("function"!=typeof r&&null!==r)throw new TypeError("Super expression must either be null or a function, not "+typeof r);e.prototype=Object.create(r&&r.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),r&&(e.__proto__=r)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,r){for(var t=0;t<r.length;t++){var n=r[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(r,t,n){return t&&e(r.prototype,t),n&&e(r,n),r}}(),_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),PopulateInterceptor=function(e){function r(){_classCallCheck(this,r),null!=e&&e.apply(this,arguments)}return _inherits(r,e),_createClass(r,[{key:"response",value:function(e){var r=this;debug("populate interceptor begin");var t=e.value,n=e.request;if(!e.hasValue()||!n.hasPopulate())return debug("Populate extractor end (do nothing)"),e;var o=[];return Array.isArray(t)?t.forEach(function(e){o.push(r._populateOne(e,n))}):o.push(this._populateOne(t,n)),Promise.all(o).then(function(){return debug("populate interceptor end"),e})}},{key:"_populateOne",value:function(e,r){debug("populate one");var t=e["**links**"],n=[],o=r.populates;return o.keys().forEach(function(u){if(u&&_lodashObjectHas2["default"](t,u)){var a=t[u],l=a.substring(0,a.indexOf(u)),s=r.restResource._createSubInstance(l,u),i=s.findAll(),p=o.getSubPopulate(u);Array.isArray(p)&&p.length&&i.populate.apply(i,_toConsumableArray(p)),i=i.sendRequest().then(function(r){e[u]=r.value}),n.push(i)}}),Promise.all(n).then(function(){return e})}},{key:"responseError",value:function(e){console.error("populate extractor responseError",e)}}]),r}(_vador.ResponseInterceptor);exports.PopulateInterceptor=PopulateInterceptor;
 
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],76:[function(require,module,exports){
+},{"debug":6,"lodash/object/has":36,"vador":50}],77:[function(require,module,exports){
 "use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var a=0;a<t.length;a++){var u=t[a];u.enumerable=u.enumerable||!1,u.configurable=!0,"value"in u&&(u.writable=!0),Object.defineProperty(e,u.key,u)}}return function(t,a,u){return a&&e(t.prototype,a),u&&e(t,u),t}}(),_lodashObjectSet=require("lodash/object/set"),_lodashObjectSet2=_interopRequireDefault(_lodashObjectSet),_lodashLangIsObject=require("lodash/lang/isObject"),_lodashLangIsObject2=_interopRequireDefault(_lodashLangIsObject),Populate=function(){function e(){var t=this,a=void 0===arguments[0]?[]:arguments[0];_classCallCheck(this,e),Array.isArray(a)||(a=[]),this._populates={},a.forEach(function(e){t._populates=_lodashObjectSet2["default"](t._populates,e,{})})}return _createClass(e,[{key:"keys",value:function(){return Object.keys(this._populates)}},{key:"getPopulateArray",value:function(){return this._getPopulate(this._populates)}},{key:"_getPopulate",value:function(e){var t=this,a=[];return Object.keys(e).forEach(function(u){var r=e[u];if(_lodashLangIsObject2["default"](r)&&Object.keys(r).length){var n=t._getPopulate(r);n.forEach(function(e){return a.push(u+"."+e)})}else a.push(u)}),a}},{key:"getSubPopulate",value:function(e){var t=this._populates[e];return t?this._getPopulate(t):[]}},{key:"populates",get:function(){return this._populates}}]),e}();exports.Populate=Populate;
 
 
-},{"lodash/lang/isObject":34,"lodash/object/set":39}]},{},[69])(69)
+},{"lodash/lang/isObject":34,"lodash/object/set":39}]},{},[70])(70)
 });

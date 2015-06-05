@@ -45,7 +45,7 @@ var PaginationExtractorInterceptor = (function (_ResponseInterceptor) {
       var value = _response.value;
       var request = _response.request;
 
-      if (((0, _lodashObjectHas2['default'])(value), this.tagPage)) {
+      if ((0, _lodashObjectHas2['default'])(value, this.tagPage)) {
         _response.page = value.page;
       }
 
