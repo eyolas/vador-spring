@@ -3,6 +3,8 @@ import assign from 'lodash/object/assign';
 import {HalRequest} from './halRequest';
 
 export class HalResource extends RestResource {
+
+
   _createSubInstance(url, resource, config) {
     return new HalResource(url, resource, config);
   }
@@ -56,7 +58,8 @@ export class HalResource extends RestResource {
   }
 
   save(obj) {
-    let links = assign({}, this._relations || {});
+    let config = this._config[this.resourceName] || {};
+    let links = assign({}, config.relations || {});
     if (links) {
       Object
         .keys(links)
