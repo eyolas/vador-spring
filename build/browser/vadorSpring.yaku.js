@@ -7357,7 +7357,8 @@ var HalResource = (function (_RestResource) {
     value: function save(obj) {
       var _this2 = this;
 
-      var links = (0, _lodashObjectAssign2['default'])({}, this._relations || {});
+      var config = this._config[this.resourceName] || {};
+      var links = (0, _lodashObjectAssign2['default'])({}, config.relations || {});
       if (links) {
         Object.keys(links).forEach(function (rel) {
           if (obj.hasOwnProperty(rel)) {
