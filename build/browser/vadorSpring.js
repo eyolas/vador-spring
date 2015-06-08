@@ -6441,37 +6441,955 @@ module.exports = function pctEncode(regexp) {
 }
 
 },{}],66:[function(require,module,exports){
-"use strict";function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),_get=function(e,t,r){for(var n=!0;n;){var o=e,i=t,a=r;s=c=u=void 0,n=!1;var s=Object.getOwnPropertyDescriptor(o,i);if(void 0!==s){if("value"in s)return s.value;var u=s.get;return void 0===u?void 0:u.call(a)}var c=Object.getPrototypeOf(o);if(null===c)return void 0;e=c,t=i,r=a,n=!0}},_vador=require("vador"),_populate=require("./populate"),_interceptors=require("./interceptors/"),HalRequest=function(e){function t(e,r,n){var o=void 0===arguments[3]?{}:arguments[3];_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this,e,r,n,o),this._populates=[],this._relations=this._config.relations||null,this._restKeys.push("**links**","**selfLink**","**hasLinks**");var i=[new _interceptors.PaginationExtractorInterceptor,new _interceptors.EmbeddedExtractorInterceptor,new _interceptors.LinkExtractorInterceptor,new _interceptors.IdExtractorInterceptor,new _interceptors.PopulateInterceptor];this._interceptors=i.concat(this._interceptors)}return _inherits(t,e),_createClass(t,[{key:"populate",value:function(){for(var e,t=arguments.length,r=Array(t),n=0;t>n;n++)r[n]=arguments[n];return(e=this._populates).push.apply(e,r),this}},{key:"hasPopulate",value:function(){var e=this._populates;return Array.isArray(e)&&e.length>0}},{key:"_proxifyOne",value:function(e,r){var n=this,o=_get(Object.getPrototypeOf(t.prototype),"_proxifyOne",this).call(this,e),i=e["**links**"];return i&&Object.keys(i).forEach(function(e){if(!o.hasOwnProperty(e)){var t=i[e],r=t.substring(0,t.indexOf(e)),a=n.restResource._createSubInstance(r,e);!function(t){var r=void 0;Object.defineProperty(o,""+e+"Async",{enumerable:!1,get:function(){return void 0!==r?Promise.resolve(r):t.findAll().sendRequest().then(function(e){return r=e.value,Promise.resolve(r)})}})}(a)}}),o}},{key:"populates",get:function(){return new _populate.Populate(this._populates)}}]),t}(_vador.Request);exports.HalRequest=HalRequest;
+'use strict';
 
-},{"./interceptors/":71,"./populate":75,"vador":50}],67:[function(require,module,exports){
-"use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,r){if(!(e instanceof r))throw new TypeError("Cannot call a class as a function")}function _inherits(e,r){if("function"!=typeof r&&null!==r)throw new TypeError("Super expression must either be null or a function, not "+typeof r);e.prototype=Object.create(r&&r.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),r&&(e.__proto__=r)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,r){for(var t=0;t<r.length;t++){var n=r[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(r,t,n){return t&&e(r.prototype,t),n&&e(r,n),r}}(),_get=function(e,r,t){for(var n=!0;n;){var a=e,o=r,u=t;s=l=i=void 0,n=!1;var s=Object.getOwnPropertyDescriptor(a,o);if(void 0!==s){if("value"in s)return s.value;var i=s.get;return void 0===i?void 0:i.call(u)}var l=Object.getPrototypeOf(a);if(null===l)return void 0;e=l,r=o,t=u,n=!0}},_vador=require("vador"),_lodashObjectAssign=require("lodash/object/assign"),_lodashObjectAssign2=_interopRequireDefault(_lodashObjectAssign),_halRequest=require("./halRequest"),HalResource=function(e){function r(){_classCallCheck(this,r),null!=e&&e.apply(this,arguments)}return _inherits(r,e),_createClass(r,[{key:"_createSubInstance",value:function(e,t,n){return new r(e,t,n)}},{key:"constructBaseRequest",value:function(){var e=void 0===arguments[0]?"get":arguments[0],r=void 0===arguments[1]?Array:arguments[1],t=void 0===arguments[2]?"":arguments[2],n=new _halRequest.HalRequest(this._baseUrl,this.resourceName,this,this._config);return n.responseType=r,n.url=this._baseUrl+this.resourceName+t,n.method=e,n}},{key:"_transformToLink",value:function(e,r,t){var n=this,a=null,o=r.href,u=r.type;if(null===e)return{type:u,newValue:a};if("many"===u){if(!Array.isArray(e))throw new Error("For relation "+t+", the value must be an Array");a=[],e.forEach(function(e){var r=n._transformToLinkOne(e,o,t);null!==r&&a.push(r)})}else a=this._transformToLinkOne(e,o,t);return{type:u,newValue:a}}},{key:"_transformToLinkOne",value:function(e,r,t){if(null==e)return null;if(e.id)return(""+r+"/"+e.id).replace(/\/{2,}/,"/");throw new Error("For relation "+t+", the value must have id")}},{key:"save",value:function(e){var t=this,n=_lodashObjectAssign2["default"]({},this._relations||{});return n&&Object.keys(n).forEach(function(r){if(e.hasOwnProperty(r)){var a=t._transformToLink(e[r],n[r],r),o=(a.type,a.newValue);e[r]=o}}),_get(Object.getPrototypeOf(r.prototype),"save",this).call(this,e)}}]),r}(_vador.RestResource);exports.HalResource=HalResource;
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _vador = require('vador');
+
+var _populate = require('./populate');
+
+var _interceptors = require('../interceptors/');
+
+var HalRequest = (function (_Request) {
+  function HalRequest(baseUrl, resourceName, restResource) {
+    var config = arguments[3] === undefined ? {} : arguments[3];
+
+    _classCallCheck(this, HalRequest);
+
+    _get(Object.getPrototypeOf(HalRequest.prototype), 'constructor', this).call(this, baseUrl, resourceName, restResource, config);
+    this._populates = [];
+    this._relations = this._config.relations || null;
+    this._restKeys.push('**links**', '**selfLink**', '**hasLinks**');
+
+    //internal interceptors
+    var interceptors = [new _interceptors.PaginationExtractorInterceptor(), new _interceptors.EmbeddedExtractorInterceptor(), new _interceptors.LinkExtractorInterceptor(), new _interceptors.IdExtractorInterceptor(), new _interceptors.PopulateInterceptor()];
+
+    this._interceptors = interceptors.concat(this._interceptors);
+  }
+
+  _inherits(HalRequest, _Request);
+
+  _createClass(HalRequest, [{
+    key: 'populate',
+    value: function populate() {
+      var _populates;
+
+      for (var _len = arguments.length, rel = Array(_len), _key = 0; _key < _len; _key++) {
+        rel[_key] = arguments[_key];
+      }
+
+      (_populates = this._populates).push.apply(_populates, rel);
+      return this;
+    }
+  }, {
+    key: 'hasPopulate',
+    value: function hasPopulate() {
+      var pop = this._populates;
+      return Array.isArray(pop) && pop.length > 0;
+    }
+  }, {
+    key: '_proxifyOne',
+    value: function _proxifyOne(object, request) {
+      var _this = this;
+
+      var obj = _get(Object.getPrototypeOf(HalRequest.prototype), '_proxifyOne', this).call(this, object);
+
+      var links = object['**links**'];
+
+      if (links) {
+        Object.keys(links).forEach(function (rel) {
+          if (!obj.hasOwnProperty(rel)) {
+            var link = links[rel];
+            var url = link.substring(0, link.indexOf(rel));
+            var r = _this.restResource._createSubInstance(url, rel);
+            (function (request) {
+              var value = undefined;
+              Object.defineProperty(obj, '' + rel + 'Async', {
+                enumerable: false,
+                get: function get() {
+                  if (value !== undefined) {
+                    return Promise.resolve(value);
+                  } else {
+                    return request.findAll().sendRequest().then(function (res) {
+                      value = res.value;
+                      return Promise.resolve(value);
+                    });
+                  }
+                }
+              });
+            })(r);
+          }
+        });
+      }
+
+      return obj;
+    }
+  }, {
+    key: 'populates',
+    get: function () {
+      return new _populate.Populate(this._populates);
+    }
+  }]);
+
+  return HalRequest;
+})(_vador.Request);
+
+exports.HalRequest = HalRequest;
+
+},{"../interceptors/":73,"./populate":70,"vador":50}],67:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _vador = require('vador');
+
+var _lodashObjectAssign = require('lodash/object/assign');
+
+var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
+
+var _halRequest = require('./halRequest');
+
+var HalResource = (function (_RestResource) {
+  function HalResource() {
+    _classCallCheck(this, HalResource);
+
+    if (_RestResource != null) {
+      _RestResource.apply(this, arguments);
+    }
+  }
+
+  _inherits(HalResource, _RestResource);
+
+  _createClass(HalResource, [{
+    key: '_createSubInstance',
+    value: function _createSubInstance(url, resource, config) {
+      return new HalResource(url, resource, config);
+    }
+  }, {
+    key: 'constructBaseRequest',
+    value: function constructBaseRequest() {
+      var method = arguments[0] === undefined ? 'get' : arguments[0];
+      var responseType = arguments[1] === undefined ? Array : arguments[1];
+      var addUrl = arguments[2] === undefined ? '' : arguments[2];
+
+      var request = new _halRequest.HalRequest(this._baseUrl, this.resourceName, this, this._config);
+      request.responseType = responseType;
+      request.url = this._baseUrl + this.resourceName + addUrl;
+      request.method = method;
+      return request;
+    }
+  }, {
+    key: '_transformToLink',
+    value: function _transformToLink(value, link, rel) {
+      var _this = this;
+
+      var newValue = null;
+      var href = link.href;
+      var type = link.type;
+
+      if (value === null) {
+        return { type: type, newValue: newValue };
+      }
+
+      if (type === 'many') {
+        if (!Array.isArray(value)) {
+          throw new Error('For relation ' + rel + ', the value must be an Array');
+        }
+
+        newValue = [];
+        value.forEach(function (val) {
+          var tval = _this._transformToLinkOne(val, href, rel);
+          if (tval !== null) {
+            newValue.push(tval);
+          }
+        });
+      } else {
+        newValue = this._transformToLinkOne(value, href, rel);
+      }
+
+      return { type: type, newValue: newValue };
+    }
+  }, {
+    key: '_transformToLinkOne',
+    value: function _transformToLinkOne(value, href, rel) {
+      if (value == null) {
+        return null;
+      }
+
+      if (value.id) {
+        // remove duplicate slashes
+        return ('' + href + '/' + value.id).replace(/\/{2,}/, '/');
+      } else {
+        throw new Error('For relation ' + rel + ', the value must have id');
+      }
+    }
+  }, {
+    key: 'save',
+    value: function save(obj) {
+      var _this2 = this;
+
+      var links = (0, _lodashObjectAssign2['default'])({}, this._relations || {});
+      if (links) {
+        Object.keys(links).forEach(function (rel) {
+          if (obj.hasOwnProperty(rel)) {
+            var _transformToLink2 = _this2._transformToLink(obj[rel], links[rel], rel);
+
+            var type = _transformToLink2.type;
+            var newValue = _transformToLink2.newValue;
+
+            obj[rel] = newValue;
+          }
+        });
+      }
+      return _get(Object.getPrototypeOf(HalResource.prototype), 'save', this).call(this, obj);
+    }
+  }]);
+
+  return HalResource;
+})(_vador.RestResource);
+
+exports.HalResource = HalResource;
 
 },{"./halRequest":66,"lodash/object/assign":35,"vador":50}],68:[function(require,module,exports){
-"use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),_vador=require("vador"),_halResource=require("./halResource"),_lodashObjectAssign=require("lodash/object/assign"),_lodashObjectAssign2=_interopRequireDefault(_lodashObjectAssign),HalRestClient=function(e){function t(){_classCallCheck(this,t),null!=e&&e.apply(this,arguments)}return _inherits(t,e),_createClass(t,[{key:"instanciateResource",value:function(e,t){return new _halResource.HalResource(this._baseUrl,e,t)}}]),t}(_vador.RestClient);exports.HalRestClient=HalRestClient;
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _vador = require('vador');
+
+var _halResource = require('./halResource');
+
+var _lodashObjectAssign = require('lodash/object/assign');
+
+var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
+
+var HalRestClient = (function (_RestClient) {
+  function HalRestClient() {
+    _classCallCheck(this, HalRestClient);
+
+    if (_RestClient != null) {
+      _RestClient.apply(this, arguments);
+    }
+  }
+
+  _inherits(HalRestClient, _RestClient);
+
+  _createClass(HalRestClient, [{
+    key: 'instanciateResource',
+    value: function instanciateResource(resourceName, conf) {
+      return new _halResource.HalResource(this._baseUrl, resourceName, conf);
+    }
+  }]);
+
+  return HalRestClient;
+})(_vador.RestClient);
+
+exports.HalRestClient = HalRestClient;
 
 },{"./halResource":67,"lodash/object/assign":35,"vador":50}],69:[function(require,module,exports){
-"use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var a=t[r];a.enumerable=a.enumerable||!1,a.configurable=!0,"value"in a&&(a.writable=!0),Object.defineProperty(e,a.key,a)}}return function(t,r,a){return r&&e(t.prototype,r),a&&e(t,a),t}}(),_get=function(e,t,r){for(var a=!0;a;){var n=e,o=t,d=r;i=c=u=void 0,a=!1;var i=Object.getOwnPropertyDescriptor(n,o);if(void 0!==i){if("value"in i)return i.value;var u=i.get;return void 0===u?void 0:u.call(d)}var c=Object.getPrototypeOf(n);if(null===c)return void 0;e=c,t=o,r=d,a=!0}},_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),_lodashLangIsObject=require("lodash/lang/isObject"),_lodashLangIsObject2=_interopRequireDefault(_lodashLangIsObject),debug=new _debug2["default"]("halClient [Interceptor]"),EMBEDDED="_embedded",EmbeddedExtractorInterceptor=function(e){function t(e){_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this),this.tagEmbedded=e||EMBEDDED}return _inherits(t,e),_createClass(t,[{key:"response",value:function(e){debug("embedded extractor start");var t=e.value;e.request;return e.value=this._extractEmbbeded(t),debug("embedded extractor end"),e}},{key:"_extractEmbbeded",value:function(e){if(_lodashObjectHas2["default"](e,this.tagEmbedded)){e=e[this.tagEmbedded];var t=Object.keys(e);if(1!==t.length)throw new Error("an embedded must have an object with one key");if(t[0]===this.tagEmbedded)throw new Error("an embedded can't have directly an embedded");Array.isArray(e[t[0]])&&(e=e[t[0]])}return this._internalExtractEmbbeded(e)}},{key:"_internalExtractEmbbeded",value:function(e){var t=this;if(Array.isArray(e))return e.map(function(e){return t._internalExtractEmbbeded(e)});if(!_lodashLangIsObject2["default"](e))return e;var r=function(){var r={};return Object.keys(e).forEach(function(a){var n=e[a];if(a===t.tagEmbedded&&_lodashLangIsObject2["default"](n)){if(!_lodashLangIsObject2["default"](n)||1!==Object.keys(n).length)throw new Error("an embedded must have an object with one key");if(a=Object.keys(n)[0],a===t.tagEmbedded)throw new Error("an embedded can't have directly an embedded");n=n[a]}r[a]=t._internalExtractEmbbeded(n)}),{v:r}}();return"object"==typeof r?r.v:void 0}},{key:"responseError",value:function(e){console.error("embedded extractor responseError",e)}}]),t}(_vador.ResponseInterceptor);exports.EmbeddedExtractorInterceptor=EmbeddedExtractorInterceptor;
+'use strict';
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],70:[function(require,module,exports){
-"use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,r){if(!(e instanceof r))throw new TypeError("Cannot call a class as a function")}function _inherits(e,r){if("function"!=typeof r&&null!==r)throw new TypeError("Super expression must either be null or a function, not "+typeof r);e.prototype=Object.create(r&&r.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),r&&(e.__proto__=r)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,r){for(var t=0;t<r.length;t++){var n=r[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(r,t,n){return t&&e(r.prototype,t),n&&e(r,n),r}}(),_vador=require("vador"),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),REGEX_LASTPART=/\/([^\/]*)\/?$/,IdExtractorInterceptor=function(e){function r(){_classCallCheck(this,r),null!=e&&e.apply(this,arguments)}return _inherits(r,e),_createClass(r,[{key:"response",value:function(e){var r=this;debug("id extractor start");var t=e.value;return e.hasValue()?(Array.isArray(t)?t.forEach(function(e){return r._extractId(e)}):this._extractId(t),debug("id extractor end"),e):(debug("id extractor end (do nothing)"),e)}},{key:"_extractId",value:function(e){if(!e.id){var r=e["**selfLink**"];if(r){var t=r.match(REGEX_LASTPART);t.length>1&&(e.id=t[1])}}}},{key:"responseError",value:function(e){console.error("id extractor responseError"),console.error(e.stack)}}]),r}(_vador.ResponseInterceptor);exports.IdExtractorInterceptor=IdExtractorInterceptor;
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
 
-},{"debug":6,"vador":50}],71:[function(require,module,exports){
-"use strict";function _interopRequireWildcard(r){if(r&&r.__esModule)return r;var e={};if(null!=r)for(var t in r)Object.prototype.hasOwnProperty.call(r,t)&&(e[t]=r[t]);return e["default"]=r,e}function _defaults(r,e){for(var t=Object.getOwnPropertyNames(e),o=0;o<t.length;o++){var a=t[o],i=Object.getOwnPropertyDescriptor(e,a);i&&i.configurable&&void 0===r[a]&&Object.defineProperty(r,a,i)}return r}Object.defineProperty(exports,"__esModule",{value:!0});var _idExtractorInterceptor=require("./idExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_idExtractorInterceptor));var _linkExtractorInterceptor=require("./linkExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_linkExtractorInterceptor));var _embeddedExtractorInterceptor=require("./embeddedExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_embeddedExtractorInterceptor));var _populateInterceptor=require("./populateInterceptor");_defaults(exports,_interopRequireWildcard(_populateInterceptor));var _paginationExtractorInterceptor=require("./paginationExtractorInterceptor");_defaults(exports,_interopRequireWildcard(_paginationExtractorInterceptor));
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
-},{"./embeddedExtractorInterceptor":69,"./idExtractorInterceptor":70,"./linkExtractorInterceptor":72,"./paginationExtractorInterceptor":73,"./populateInterceptor":74}],72:[function(require,module,exports){
-"use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),_get=function(e,t,r){for(var n=!0;n;){var a=e,o=t,i=r;s=u=l=void 0,n=!1;var s=Object.getOwnPropertyDescriptor(a,o);if(void 0!==s){if("value"in s)return s.value;var l=s.get;return void 0===l?void 0:l.call(i)}var u=Object.getPrototypeOf(a);if(null===u)return void 0;e=u,t=o,r=i,n=!0}},_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_lodashLangIsObject=require("lodash/lang/isObject"),_lodashLangIsObject2=_interopRequireDefault(_lodashLangIsObject),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),TAG_LINK="_links",TAG_HREF="href",TAG_SELF="self",LinkExtractorInterceptor=function(e){function t(e,r,n){_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this),this.tagLink=e||TAG_LINK,this.tagHref=r||TAG_HREF,this.tagSelf=n||TAG_SELF}return _inherits(t,e),_createClass(t,[{key:"response",value:function(e){var t=this;debug("link extractor start");var r=e.value;return e.hasValue()?(Array.isArray(r)?r.forEach(function(e){return t._extractOne(e)}):this._extractOne(r),debug("link extractor end"),e):(debug("link extractor end (do nothing)"),e)}},{key:"_extractOne",value:function(e){var t=!1;if(_lodashObjectHas2["default"](e,""+this.tagLink)&&_lodashLangIsObject2["default"](e[this.tagLink])){debug("add **links**"),t=!0;var r=this._formatLinks(e[this.tagLink]),n=r.finalLinks,a=r.selfLink;this._defineProperty(e,"**links**",n),this._defineProperty(e,"**selfLink**",a)}this._defineProperty(e,"**hasLinks**",t)}},{key:"_defineProperty",value:function(e,t,r){e.hasOwnProperty(t)?e[t]=r:Object.defineProperty(e,t,{value:r,writable:!0})}},{key:"_formatLinks",value:function(e){var t=this,r={},n=null;return Object.keys(e).forEach(function(a){var o=e[a];_lodashLangIsObject2["default"](o)&&_lodashObjectHas2["default"](o,t.tagHref)&&(a===t.tagSelf?n=o[t.tagHref]:r[a]=o[t.tagHref])}),{finalLinks:r,selfLink:n}}},{key:"responseError",value:function(e){console.error("link extractor responseError",e)}}]),t}(_vador.ResponseInterceptor);exports.LinkExtractorInterceptor=LinkExtractorInterceptor;
+function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],73:[function(require,module,exports){
-"use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _inherits(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(e.__proto__=t)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var o=t[r];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(e,o.key,o)}}return function(t,r,o){return r&&e(t.prototype,r),o&&e(t,o),t}}(),_get=function(e,t,r){for(var o=!0;o;){var n=e,a=t,i=r;u=l=c=void 0,o=!1;var u=Object.getOwnPropertyDescriptor(n,a);if(void 0!==u){if("value"in u)return u.value;var c=u.get;return void 0===c?void 0:c.call(i)}var l=Object.getPrototypeOf(n);if(null===l)return void 0;e=l,t=a,r=i,o=!0}},_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),PAGE="page",PaginationExtractorInterceptor=function(e){function t(e){_classCallCheck(this,t),_get(Object.getPrototypeOf(t.prototype),"constructor",this).call(this),this.tagPage=e||PAGE}return _inherits(t,e),_createClass(t,[{key:"response",value:function(e){debug("pagination extractor start");var t=e.value;e.request;return _lodashObjectHas2["default"](t,this.tagPage)&&(e.page=t.page),debug("pagination extractor end"),e}},{key:"responseError",value:function(e){console.error("pagination extractor responseError",e)}}]),t}(_vador.ResponseInterceptor);exports.PaginationExtractorInterceptor=PaginationExtractorInterceptor;
+var _halRestClient = require('./halRestClient');
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],74:[function(require,module,exports){
-"use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _toConsumableArray(e){if(Array.isArray(e)){for(var r=0,t=Array(e.length);r<e.length;r++)t[r]=e[r];return t}return Array.from(e)}function _classCallCheck(e,r){if(!(e instanceof r))throw new TypeError("Cannot call a class as a function")}function _inherits(e,r){if("function"!=typeof r&&null!==r)throw new TypeError("Super expression must either be null or a function, not "+typeof r);e.prototype=Object.create(r&&r.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),r&&(e.__proto__=r)}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,r){for(var t=0;t<r.length;t++){var n=r[t];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(r,t,n){return t&&e(r.prototype,t),n&&e(r,n),r}}(),_vador=require("vador"),_lodashObjectHas=require("lodash/object/has"),_lodashObjectHas2=_interopRequireDefault(_lodashObjectHas),_debug=require("debug"),_debug2=_interopRequireDefault(_debug),debug=new _debug2["default"]("halClient [Interceptor]"),PopulateInterceptor=function(e){function r(){_classCallCheck(this,r),null!=e&&e.apply(this,arguments)}return _inherits(r,e),_createClass(r,[{key:"response",value:function(e){var r=this;debug("populate interceptor begin");var t=e.value,n=e.request;if(!e.hasValue()||!n.hasPopulate())return debug("Populate extractor end (do nothing)"),e;var o=[];return Array.isArray(t)?t.forEach(function(e){o.push(r._populateOne(e,n))}):o.push(this._populateOne(t,n)),Promise.all(o).then(function(){return debug("populate interceptor end"),e})}},{key:"_populateOne",value:function(e,r){debug("populate one");var t=e["**links**"],n=[],o=r.populates;return o.keys().forEach(function(u){if(u&&_lodashObjectHas2["default"](t,u)){var a=t[u],l=a.substring(0,a.indexOf(u)),s=r.restResource._createSubInstance(l,u),i=s.findAll(),p=o.getSubPopulate(u);Array.isArray(p)&&p.length&&i.populate.apply(i,_toConsumableArray(p)),i=i.sendRequest().then(function(r){e[u]=r.value}),n.push(i)}}),Promise.all(n).then(function(){return e})}},{key:"responseError",value:function(e){console.error("populate extractor responseError",e)}}]),r}(_vador.ResponseInterceptor);exports.PopulateInterceptor=PopulateInterceptor;
+_defaults(exports, _interopRequireWildcard(_halRestClient));
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],75:[function(require,module,exports){
-"use strict";function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var a=0;a<t.length;a++){var u=t[a];u.enumerable=u.enumerable||!1,u.configurable=!0,"value"in u&&(u.writable=!0),Object.defineProperty(e,u.key,u)}}return function(t,a,u){return a&&e(t.prototype,a),u&&e(t,u),t}}(),_lodashObjectSet=require("lodash/object/set"),_lodashObjectSet2=_interopRequireDefault(_lodashObjectSet),_lodashLangIsObject=require("lodash/lang/isObject"),_lodashLangIsObject2=_interopRequireDefault(_lodashLangIsObject),Populate=function(){function e(){var t=this,a=void 0===arguments[0]?[]:arguments[0];_classCallCheck(this,e),Array.isArray(a)||(a=[]),this._populates={},a.forEach(function(e){t._populates=_lodashObjectSet2["default"](t._populates,e,{})})}return _createClass(e,[{key:"keys",value:function(){return Object.keys(this._populates)}},{key:"getPopulateArray",value:function(){return this._getPopulate(this._populates)}},{key:"_getPopulate",value:function(e){var t=this,a=[];return Object.keys(e).forEach(function(u){var r=e[u];if(_lodashLangIsObject2["default"](r)&&Object.keys(r).length){var n=t._getPopulate(r);n.forEach(function(e){return a.push(u+"."+e)})}else a.push(u)}),a}},{key:"getSubPopulate",value:function(e){var t=this._populates[e];return t?this._getPopulate(t):[]}},{key:"populates",get:function(){return this._populates}}]),e}();exports.Populate=Populate;
+var _halResource = require('./halResource');
 
-},{"lodash/lang/isObject":34,"lodash/object/set":39}],76:[function(require,module,exports){
-"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],a=Object.getOwnPropertyDescriptor(r,i);a&&a.configurable&&void 0===e[i]&&Object.defineProperty(e,i,a)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug),_halRestClient=require("./halRestClient");_defaults(exports,_interopRequireWildcard(_halRestClient));var _halResource=require("./halResource");_defaults(exports,_interopRequireWildcard(_halResource));var _halRequest=require("./halRequest");_defaults(exports,_interopRequireWildcard(_halRequest));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
+_defaults(exports, _interopRequireWildcard(_halResource));
 
-},{"./halRequest":66,"./halResource":67,"./halRestClient":68,"./interceptors":71,"debug":6}]},{},[76])(76)
+var _halRequest = require('./halRequest');
+
+_defaults(exports, _interopRequireWildcard(_halRequest));
+
+},{"./halRequest":66,"./halResource":67,"./halRestClient":68}],70:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _lodashObjectSet = require('lodash/object/set');
+
+var _lodashObjectSet2 = _interopRequireDefault(_lodashObjectSet);
+
+var _lodashLangIsObject = require('lodash/lang/isObject');
+
+var _lodashLangIsObject2 = _interopRequireDefault(_lodashLangIsObject);
+
+var Populate = (function () {
+  function Populate() {
+    var _this = this;
+
+    var populates = arguments[0] === undefined ? [] : arguments[0];
+
+    _classCallCheck(this, Populate);
+
+    if (!Array.isArray(populates)) {
+      populates = [];
+    }
+    this._populates = {};
+
+    //transform array to tree
+    populates.forEach(function (populate) {
+      _this._populates = (0, _lodashObjectSet2['default'])(_this._populates, populate, {});
+    });
+  }
+
+  _createClass(Populate, [{
+    key: 'keys',
+    value: function keys() {
+      return Object.keys(this._populates);
+    }
+  }, {
+    key: 'getPopulateArray',
+    value: function getPopulateArray() {
+      return this._getPopulate(this._populates);
+    }
+  }, {
+    key: '_getPopulate',
+    value: function _getPopulate(obj) {
+      var _this2 = this;
+
+      var populates = [];
+      Object.keys(obj).forEach(function (k) {
+        var val = obj[k];
+        if ((0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length) {
+          var p = _this2._getPopulate(val);
+          p.forEach(function (v) {
+            return populates.push(k + '.' + v);
+          });
+        } else {
+          populates.push(k);
+        }
+      });
+      return populates;
+    }
+  }, {
+    key: 'getSubPopulate',
+    value: function getSubPopulate(sub) {
+      var subPopulate = this._populates[sub];
+      if (subPopulate) {
+        return this._getPopulate(subPopulate);
+      } else {
+        return [];
+      }
+    }
+  }, {
+    key: 'populates',
+    get: function () {
+      return this._populates;
+    }
+  }]);
+
+  return Populate;
+})();
+
+exports.Populate = Populate;
+
+},{"lodash/lang/isObject":34,"lodash/object/set":39}],71:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _vador = require('vador');
+
+var _lodashObjectHas = require('lodash/object/has');
+
+var _lodashObjectHas2 = _interopRequireDefault(_lodashObjectHas);
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var _lodashLangIsObject = require('lodash/lang/isObject');
+
+var _lodashLangIsObject2 = _interopRequireDefault(_lodashLangIsObject);
+
+var debug = new _debug2['default']('halClient [Interceptor]');
+
+var EMBEDDED = '_embedded';
+
+var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
+  function EmbeddedExtractorInterceptor(tagEmbedded) {
+    _classCallCheck(this, EmbeddedExtractorInterceptor);
+
+    _get(Object.getPrototypeOf(EmbeddedExtractorInterceptor.prototype), 'constructor', this).call(this);
+    this.tagEmbedded = tagEmbedded || EMBEDDED;
+  }
+
+  _inherits(EmbeddedExtractorInterceptor, _ResponseInterceptor);
+
+  _createClass(EmbeddedExtractorInterceptor, [{
+    key: 'response',
+    value: function response(_response) {
+      debug('embedded extractor start');
+      var value = _response.value;
+      var request = _response.request;
+
+      _response.value = this._extractEmbbeded(value);
+
+      debug('embedded extractor end');
+      return _response;
+    }
+  }, {
+    key: '_extractEmbbeded',
+    value: function _extractEmbbeded(obj) {
+      // if there is an embedded in object set object by the embedded
+      if ((0, _lodashObjectHas2['default'])(obj, this.tagEmbedded)) {
+        obj = obj[this.tagEmbedded];
+        var keys = Object.keys(obj);
+        if (keys.length === 1) {
+          if (keys[0] === this.tagEmbedded) {
+            throw new Error('an embedded can\'t have directly an embedded');
+          }
+
+          //if is an array so set object to array (case findAll)
+          if (Array.isArray(obj[keys[0]])) {
+            obj = obj[keys[0]];
+          }
+        } else {
+          throw new Error('an embedded must have an object with one key');
+        }
+      }
+
+      return this._internalExtractEmbbeded(obj);
+    }
+  }, {
+    key: '_internalExtractEmbbeded',
+    value: function _internalExtractEmbbeded(obj) {
+      var _this = this;
+
+      //Array first because array is an object
+      if (Array.isArray(obj)) {
+        return obj.map(function (v) {
+          return _this._internalExtractEmbbeded(v);
+        });
+      } else if ((0, _lodashLangIsObject2['default'])(obj)) {
+        var _ret = (function () {
+          var newObj = {};
+          Object.keys(obj).forEach(function (k) {
+            var val = obj[k];
+            if (k === _this.tagEmbedded && (0, _lodashLangIsObject2['default'])(val)) {
+              if ((0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length === 1) {
+                k = Object.keys(val)[0];
+                if (k === _this.tagEmbedded) {
+                  throw new Error('an embedded can\'t have directly an embedded');
+                }
+                val = val[k];
+              } else {
+                throw new Error('an embedded must have an object with one key');
+              }
+            }
+            newObj[k] = _this._internalExtractEmbbeded(val);
+          });
+          return {
+            v: newObj
+          };
+        })();
+
+        if (typeof _ret === 'object') return _ret.v;
+      } else {
+        return obj;
+      }
+    }
+  }, {
+    key: 'responseError',
+    value: function responseError(error) {
+      console.error('embedded extractor responseError', error);
+    }
+  }]);
+
+  return EmbeddedExtractorInterceptor;
+})(_vador.ResponseInterceptor);
+
+exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
+
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],72:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _vador = require('vador');
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var debug = new _debug2['default']('halClient [Interceptor]');
+
+var REGEX_LASTPART = /\/([^/]*)\/?$/;
+
+var IdExtractorInterceptor = (function (_ResponseInterceptor) {
+  function IdExtractorInterceptor() {
+    _classCallCheck(this, IdExtractorInterceptor);
+
+    if (_ResponseInterceptor != null) {
+      _ResponseInterceptor.apply(this, arguments);
+    }
+  }
+
+  _inherits(IdExtractorInterceptor, _ResponseInterceptor);
+
+  _createClass(IdExtractorInterceptor, [{
+    key: 'response',
+    value: function response(_response) {
+      var _this = this;
+
+      debug('id extractor start');
+      var value = _response.value;
+
+      if (!_response.hasValue()) {
+        debug('id extractor end (do nothing)');
+        return _response;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach(function (val) {
+          return _this._extractId(val);
+        });
+      } else {
+        this._extractId(value);
+      }
+
+      debug('id extractor end');
+      return _response;
+    }
+  }, {
+    key: '_extractId',
+    value: function _extractId(object) {
+      if (!object.id) {
+        var link = object['**selfLink**'];
+        if (link) {
+          var matches = link.match(REGEX_LASTPART);
+          if (matches.length > 1) {
+            object.id = matches[1];
+          }
+        }
+      }
+    }
+  }, {
+    key: 'responseError',
+    value: function responseError(error) {
+      console.error('id extractor responseError');
+      console.error(error.stack);
+    }
+  }]);
+
+  return IdExtractorInterceptor;
+})(_vador.ResponseInterceptor);
+
+exports.IdExtractorInterceptor = IdExtractorInterceptor;
+
+},{"debug":6,"vador":50}],73:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
+function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
+
+var _idExtractorInterceptor = require('./idExtractorInterceptor');
+
+_defaults(exports, _interopRequireWildcard(_idExtractorInterceptor));
+
+var _linkExtractorInterceptor = require('./linkExtractorInterceptor');
+
+_defaults(exports, _interopRequireWildcard(_linkExtractorInterceptor));
+
+var _embeddedExtractorInterceptor = require('./embeddedExtractorInterceptor');
+
+_defaults(exports, _interopRequireWildcard(_embeddedExtractorInterceptor));
+
+var _populateInterceptor = require('./populateInterceptor');
+
+_defaults(exports, _interopRequireWildcard(_populateInterceptor));
+
+var _paginationExtractorInterceptor = require('./paginationExtractorInterceptor');
+
+_defaults(exports, _interopRequireWildcard(_paginationExtractorInterceptor));
+
+},{"./embeddedExtractorInterceptor":71,"./idExtractorInterceptor":72,"./linkExtractorInterceptor":74,"./paginationExtractorInterceptor":75,"./populateInterceptor":76}],74:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _vador = require('vador');
+
+var _lodashObjectHas = require('lodash/object/has');
+
+var _lodashObjectHas2 = _interopRequireDefault(_lodashObjectHas);
+
+var _lodashLangIsObject = require('lodash/lang/isObject');
+
+var _lodashLangIsObject2 = _interopRequireDefault(_lodashLangIsObject);
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var debug = new _debug2['default']('halClient [Interceptor]');
+
+var TAG_LINK = '_links';
+var TAG_HREF = 'href';
+var TAG_SELF = 'self';
+
+var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
+  function LinkExtractorInterceptor(tagLink, tagHref, tagSelf) {
+    _classCallCheck(this, LinkExtractorInterceptor);
+
+    _get(Object.getPrototypeOf(LinkExtractorInterceptor.prototype), 'constructor', this).call(this);
+    this.tagLink = tagLink || TAG_LINK;
+    this.tagHref = tagHref || TAG_HREF;
+    this.tagSelf = tagSelf || TAG_SELF;
+  }
+
+  _inherits(LinkExtractorInterceptor, _ResponseInterceptor);
+
+  _createClass(LinkExtractorInterceptor, [{
+    key: 'response',
+    value: function response(_response) {
+      var _this = this;
+
+      debug('link extractor start');
+      var value = _response.value;
+
+      if (!_response.hasValue()) {
+        debug('link extractor end (do nothing)');
+        return _response;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach(function (val) {
+          return _this._extractOne(val);
+        });
+      } else {
+        this._extractOne(value);
+      }
+
+      debug('link extractor end');
+      return _response;
+    }
+  }, {
+    key: '_extractOne',
+    value: function _extractOne(object) {
+      var hasRestLinks = false;
+      if ((0, _lodashObjectHas2['default'])(object, '' + this.tagLink) && (0, _lodashLangIsObject2['default'])(object[this.tagLink])) {
+        debug('add **links**');
+        hasRestLinks = true;
+
+        var _formatLinks2 = this._formatLinks(object[this.tagLink]);
+
+        var finalLinks = _formatLinks2.finalLinks;
+        var selfLink = _formatLinks2.selfLink;
+
+        this._defineProperty(object, '**links**', finalLinks);
+        this._defineProperty(object, '**selfLink**', selfLink);
+      }
+      this._defineProperty(object, '**hasLinks**', hasRestLinks);
+    }
+  }, {
+    key: '_defineProperty',
+    value: function _defineProperty(object, prop, value) {
+      if (object.hasOwnProperty(prop)) {
+        object[prop] = value;
+      } else {
+        Object.defineProperty(object, prop, { value: value, writable: true });
+      }
+    }
+  }, {
+    key: '_formatLinks',
+    value: function _formatLinks(links) {
+      var _this2 = this;
+
+      var finalLinks = {};
+      var selfLink = null;
+      Object.keys(links).forEach(function (k) {
+        var link = links[k];
+        if ((0, _lodashLangIsObject2['default'])(link) && (0, _lodashObjectHas2['default'])(link, _this2.tagHref)) {
+          if (k === _this2.tagSelf) {
+            selfLink = link[_this2.tagHref];
+          } else {
+            finalLinks[k] = link[_this2.tagHref];
+          }
+        }
+      });
+      return { finalLinks: finalLinks, selfLink: selfLink };
+    }
+  }, {
+    key: 'responseError',
+    value: function responseError(error) {
+      console.error('link extractor responseError', error);
+    }
+  }]);
+
+  return LinkExtractorInterceptor;
+})(_vador.ResponseInterceptor);
+
+exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
+
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],75:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _vador = require('vador');
+
+var _lodashObjectHas = require('lodash/object/has');
+
+var _lodashObjectHas2 = _interopRequireDefault(_lodashObjectHas);
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var debug = new _debug2['default']('halClient [Interceptor]');
+
+var PAGE = 'page';
+
+var PaginationExtractorInterceptor = (function (_ResponseInterceptor) {
+  function PaginationExtractorInterceptor(tagPage) {
+    _classCallCheck(this, PaginationExtractorInterceptor);
+
+    _get(Object.getPrototypeOf(PaginationExtractorInterceptor.prototype), 'constructor', this).call(this);
+    this.tagPage = tagPage || PAGE;
+  }
+
+  _inherits(PaginationExtractorInterceptor, _ResponseInterceptor);
+
+  _createClass(PaginationExtractorInterceptor, [{
+    key: 'response',
+    value: function response(_response) {
+      debug('pagination extractor start');
+      var value = _response.value;
+      var request = _response.request;
+
+      if ((0, _lodashObjectHas2['default'])(value, this.tagPage)) {
+        _response.page = value.page;
+      }
+
+      debug('pagination extractor end');
+      return _response;
+    }
+  }, {
+    key: 'responseError',
+    value: function responseError(error) {
+      console.error('pagination extractor responseError', error);
+    }
+  }]);
+
+  return PaginationExtractorInterceptor;
+})(_vador.ResponseInterceptor);
+
+exports.PaginationExtractorInterceptor = PaginationExtractorInterceptor;
+
+},{"debug":6,"lodash/object/has":36,"vador":50}],76:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+var _vador = require('vador');
+
+var _lodashObjectHas = require('lodash/object/has');
+
+var _lodashObjectHas2 = _interopRequireDefault(_lodashObjectHas);
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var debug = new _debug2['default']('halClient [Interceptor]');
+
+var PopulateInterceptor = (function (_ResponseInterceptor) {
+  function PopulateInterceptor() {
+    _classCallCheck(this, PopulateInterceptor);
+
+    if (_ResponseInterceptor != null) {
+      _ResponseInterceptor.apply(this, arguments);
+    }
+  }
+
+  _inherits(PopulateInterceptor, _ResponseInterceptor);
+
+  _createClass(PopulateInterceptor, [{
+    key: 'response',
+    value: function response(_response) {
+      var _this = this;
+
+      debug('populate interceptor begin');
+      var value = _response.value;
+      var request = _response.request;
+
+      if (!_response.hasValue() || !request.hasPopulate()) {
+        debug('Populate extractor end (do nothing)');
+        return _response;
+      }
+
+      var promises = [];
+      if (Array.isArray(value)) {
+        value.forEach(function (val) {
+          promises.push(_this._populateOne(val, request));
+        });
+      } else {
+        promises.push(this._populateOne(value, request));
+      }
+
+      return Promise.all(promises).then(function () {
+        debug('populate interceptor end');
+        return _response;
+      });
+    }
+  }, {
+    key: '_populateOne',
+    value: function _populateOne(object, request) {
+      debug('populate one');
+      var links = object['**links**'];
+
+      var promises = [];
+      var populates = request.populates;
+
+      populates.keys().forEach(function (rel) {
+        if (rel && (0, _lodashObjectHas2['default'])(links, rel)) {
+          var link = links[rel];
+          var url = link.substring(0, link.indexOf(rel));
+          var r = request.restResource._createSubInstance(url, rel);
+          var promise = r.findAll();
+          var subPopulate = populates.getSubPopulate(rel);
+          if (Array.isArray(subPopulate) && subPopulate.length) {
+            promise.populate.apply(promise, _toConsumableArray(subPopulate));
+          }
+          promise = promise.sendRequest().then(function (res) {
+            object[rel] = res.value;
+          });
+          promises.push(promise);
+        }
+      });
+
+      return Promise.all(promises).then(function () {
+        return object;
+      });
+    }
+  }, {
+    key: 'responseError',
+    value: function responseError(error) {
+      console.error('populate extractor responseError', error);
+    }
+  }]);
+
+  return PopulateInterceptor;
+})(_vador.ResponseInterceptor);
+
+exports.PopulateInterceptor = PopulateInterceptor;
+
+},{"debug":6,"lodash/object/has":36,"vador":50}],77:[function(require,module,exports){
+"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],n=Object.getOwnPropertyDescriptor(r,i);n&&n.configurable&&void 0===e[i]&&Object.defineProperty(e,i,n)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug),_halRestClient=require("./halRestClient/");_defaults(exports,_interopRequireWildcard(_halRestClient));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
+
+},{"./halRestClient/":69,"./interceptors":73,"debug":6}]},{},[77])(77)
 });

@@ -16,7 +16,7 @@ var _vador = require('vador');
 
 var _populate = require('./populate');
 
-var _interceptors = require('./interceptors/');
+var _interceptors = require('../interceptors/');
 
 var HalRequest = (function (_Request) {
   function HalRequest(baseUrl, resourceName, restResource) {

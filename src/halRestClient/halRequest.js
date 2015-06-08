@@ -1,7 +1,7 @@
 import {Request} from 'vador';
 import {Populate} from './populate';
 import {PaginationExtractorInterceptor, IdExtractorInterceptor, LinkExtractorInterceptor, EmbeddedExtractorInterceptor, PopulateInterceptor}
-from './interceptors/';
+from '../interceptors/';
 
 
 export class HalRequest extends Request {
