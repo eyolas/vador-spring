@@ -6886,6 +6886,10 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
       var value = _response.value;
       var request = _response.request;
 
+      if (_response.page && !(0, _lodashObjectHas2['default'])(value, this.tagEmbedded)) {
+        value = [];
+      }
+
       _response.value = this._extractEmbbeded(value);
 
       debug('embedded extractor end');
