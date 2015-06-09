@@ -112,6 +112,45 @@ describe('EmbeddedExtractorInterceptor', () => {
           .and.to.deep.equal(expected);
         expect(extracted).to.have.property('request');
       });
+
+      it('with no _embedded and pagination (case with search return no response)', () => {
+        let page = {
+          "size": 20,
+          "totalElements": 4,
+          "totalPages": 1,
+          "number": 12
+        };
+        response.value = {
+          "_links": {
+            "self": {
+              "href": "http://localhost:8080/api/rest/services?page=12&size=20{&sort}",
+              "templated": true
+            },
+            "prev": {
+              "href": "http://localhost:8080/api/rest/services?page=11&size=20{&sort}",
+              "templated": true
+            }
+          },
+          "page": {
+            "size": 20,
+            "totalElements": 4,
+            "totalPages": 1,
+            "number": 12
+          }
+        };
+        response.page = {
+          "size": 20,
+          "totalElements": 4,
+          "totalPages": 1,
+          "number": 12
+        };
+        extract();
+        expect(extracted).to.have.property('value')
+          .and.to.deep.equal([]);
+        expect(extracted).to.have.property('request');
+        expect(extracted).to.have.property('page')
+          .that.deep.equal(page);
+      });
     });
 
     describe('tests errors', () => {
@@ -207,7 +246,6 @@ describe('EmbeddedExtractorInterceptor', () => {
         expect(extract).to.throw(Error, /an object with one key/);
       });
     });
-
   });
 
   describe('test with custom tag', () => {
@@ -315,6 +353,45 @@ describe('EmbeddedExtractorInterceptor', () => {
         expect(extracted).to.have.property('value')
           .and.to.deep.equal(expected);
         expect(extracted).to.have.property('request');
+      });
+
+      it('with no _custom and pagination (case with search return no response)', () => {
+        let page = {
+          "size": 20,
+          "totalElements": 4,
+          "totalPages": 1,
+          "number": 12
+        };
+        response.value = {
+          "_links": {
+            "self": {
+              "href": "http://localhost:8080/api/rest/services?page=12&size=20{&sort}",
+              "templated": true
+            },
+            "prev": {
+              "href": "http://localhost:8080/api/rest/services?page=11&size=20{&sort}",
+              "templated": true
+            }
+          },
+          "page": {
+            "size": 20,
+            "totalElements": 4,
+            "totalPages": 1,
+            "number": 12
+          }
+        };
+        response.page = {
+          "size": 20,
+          "totalElements": 4,
+          "totalPages": 1,
+          "number": 12
+        };
+        extract();
+        expect(extracted).to.have.property('value')
+          .and.to.deep.equal([]);
+        expect(extracted).to.have.property('request');
+        expect(extracted).to.have.property('page')
+          .that.deep.equal(page);
       });
     });
 

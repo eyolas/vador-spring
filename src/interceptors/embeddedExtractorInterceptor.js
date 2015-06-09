@@ -17,6 +17,10 @@ export class EmbeddedExtractorInterceptor extends ResponseInterceptor {
     debug('embedded extractor start');
     let {value, request} = response;
 
+    if (response.page && !has(value, this.tagEmbedded)) {
+      value = [];
+    }
+
     response.value = this._extractEmbbeded(value);
 
     debug('embedded extractor end');
