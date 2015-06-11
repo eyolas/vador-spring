@@ -53,7 +53,8 @@ export class HalResource extends RestResource {
       // remove duplicate slashes
       return `${href}/${value.id}`.replace(/\/{2,}/, '/');
     } else {
-      throw new Error(`For relation ${rel}, the value must have id`);
+      // no exception throw here, because subobjects can became from spring projection
+      // throw new Error(`For relation ${rel}, the value must have id`);
     }
   }
 

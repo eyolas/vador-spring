@@ -20,7 +20,7 @@ var _debug2 = _interopRequireDefault(_debug);
 
 var debug = new _debug2['default']('halClient [Interceptor]');
 
-var REGEX_LASTPART = /\/([^/]*)\/?$/;
+var REGEX_LASTPART = /.*\/([^\{]+)/; // get last element before { (example: /api/rest/credentials/admin{?projection} -> admin)
 
 var IdExtractorInterceptor = (function (_ResponseInterceptor) {
   function IdExtractorInterceptor() {

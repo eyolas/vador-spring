@@ -6443,7 +6443,7 @@ module.exports = function pctEncode(regexp) {
 },{}],66:[function(require,module,exports){
 (function (__filename){
 /*
- Yaku v0.2.0
+ Yaku v0.2.1
  (c) 2015 Yad Smood. http://ysmood.org
  License MIT
 */
@@ -6678,24 +6678,26 @@ module.exports = function pctEncode(regexp) {
      */
 
     Yaku.onUnhandledRejection = function(reason, p) {
-      var format, hStack;
+      var stackInfo, stackStr;
       if (!isObject(console)) {
         return;
       }
-      hStack = '\n';
+      stackInfo = [(reason ? reason.stack ? reason.stack.trim() : reason : reason)];
       if (isLongStackTrace && p[$promiseTrace]) {
         if (p[$settlerTrace]) {
-          hStack += p[$settlerTrace];
+          stackInfo.push(p[$settlerTrace].trim());
         }
         while (p) {
-          hStack += p[$promiseTrace];
+          stackInfo.push(p[$promiseTrace].trim());
           p = p._pre;
         }
       }
-      format = function(str) {
-        return (typeof __filename === 'string' ? str.replace(RegExp(".+" + __filename + ".+\\n?", "g"), '') : str).replace(/\n$/, '');
-      };
-      return console.error('Unhandled Rejection:', (reason ? reason.stack ? format(reason.stack) : reason : reason), format(hStack));
+      stackStr = stackInfo.join('\n');
+      if (typeof __filename === 'string') {
+        stackStr = stackStr.replace(RegExp(".+" + __filename + ".+\\n?", "g"), '');
+      }
+      console.error('Unhandled Rejection:', stackStr);
+      return stackInfo;
     };
 
     isLongStackTrace = false;
@@ -6891,7 +6893,7 @@ module.exports = function pctEncode(regexp) {
     };
 
     genTraceInfo = function(noTitle) {
-      return (new Error).stack.replace('Error\n', (noTitle ? '' : ' From previous event:\n'));
+      return (new Error).stack.replace('Error', (noTitle ? '' : 'From previous event:'));
     };
 
 
@@ -6925,8 +6927,6 @@ module.exports = function pctEncode(regexp) {
     Yaku.prototype._pCount = 0;
 
     Yaku.prototype._pre = null;
-
-    Yaku.prototype._hasUnhandled = false;
 
 
     /**
@@ -7008,16 +7008,24 @@ module.exports = function pctEncode(regexp) {
     });
 
     scheduleUnhandledRejection = genScheduler(100, function(p) {
-      var pre;
-      pre = p;
-      while (pre) {
-        if (pre._hasUnhandled) {
+      var iter;
+      iter = function(node) {
+        var i, len;
+        i = 0;
+        len = node._pCount;
+        if (node._onRejected) {
           return;
         }
-        pre._hasUnhandled = true;
-        pre = pre._pre;
+        while (i < len) {
+          if (!iter(node[i++])) {
+            return;
+          }
+        }
+        return true;
+      };
+      if (iter(p)) {
+        Yaku.onUnhandledRejection(p._value, p);
       }
-      Yaku.onUnhandledRejection(p._value, p);
     });
 
     callHanler = function(handler, value) {
@@ -7040,14 +7048,13 @@ module.exports = function pctEncode(regexp) {
       }
       p._state = state;
       p._value = value;
-      if (state === $rejected) {
+      if (state === $rejected && (!p._pre || p._pre._state === $resolved)) {
         scheduleUnhandledRejection(p);
       }
       i = 0;
       len = p._pCount;
       while (i < len) {
-        scheduleHandler(p, p[i]);
-        release(p, i++);
+        scheduleHandler(p, p[i++]);
       }
       return p;
     };
@@ -7074,7 +7081,8 @@ module.exports = function pctEncode(regexp) {
         }
         if (isFunction(xthen)) {
           if (x instanceof Yaku) {
-            x._pre = p;
+            x._pre = p._pre;
+            p._pre = x;
           }
           settleXthen(p, x, xthen);
         } else {
@@ -7253,7 +7261,7 @@ var HalRequest = (function (_Request) {
 
 exports.HalRequest = HalRequest;
 
-},{"../interceptors/":74,"./populate":71,"vador":50}],68:[function(require,module,exports){
+},{"../interceptors/":75,"./populate":71,"vador":50}],68:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7348,9 +7356,7 @@ var HalResource = (function (_RestResource) {
       if (value.id) {
         // remove duplicate slashes
         return ('' + href + '/' + value.id).replace(/\/{2,}/, '/');
-      } else {
-        throw new Error('For relation ' + rel + ', the value must have id');
-      }
+      } else {}
     }
   }, {
     key: 'save',
@@ -7379,6 +7385,9 @@ var HalResource = (function (_RestResource) {
 })(_vador.RestResource);
 
 exports.HalResource = HalResource;
+
+// no exception throw here, because subobjects can became from spring projection
+// throw new Error(`For relation ${rel}, the value must have id`);
 
 },{"./halRequest":67,"lodash/object/assign":35,"vador":50}],69:[function(require,module,exports){
 'use strict';
@@ -7541,6 +7550,11 @@ var Populate = (function () {
 exports.Populate = Populate;
 
 },{"lodash/lang/isObject":34,"lodash/object/set":39}],72:[function(require,module,exports){
+(function (global){
+"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],o=Object.getOwnPropertyDescriptor(r,i);o&&o.configurable&&void 0===e[i]&&Object.defineProperty(e,i,o)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug);global.Promise=require("yaku");var _halRestClient=require("./halRestClient/");_defaults(exports,_interopRequireWildcard(_halRestClient));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./halRestClient/":70,"./interceptors":75,"debug":6,"yaku":66}],73:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7674,7 +7688,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],73:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],74:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7697,7 +7711,7 @@ var _debug2 = _interopRequireDefault(_debug);
 
 var debug = new _debug2['default']('halClient [Interceptor]');
 
-var REGEX_LASTPART = /\/([^/]*)\/?$/;
+var REGEX_LASTPART = /.*\/([^\{]+)/; // get last element before { (example: /api/rest/credentials/admin{?projection} -> admin)
 
 var IdExtractorInterceptor = (function (_ResponseInterceptor) {
   function IdExtractorInterceptor() {
@@ -7760,7 +7774,7 @@ var IdExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.IdExtractorInterceptor = IdExtractorInterceptor;
 
-},{"debug":6,"vador":50}],74:[function(require,module,exports){
+},{"debug":6,"vador":50}],75:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7791,7 +7805,7 @@ var _paginationExtractorInterceptor = require('./paginationExtractorInterceptor'
 
 _defaults(exports, _interopRequireWildcard(_paginationExtractorInterceptor));
 
-},{"./embeddedExtractorInterceptor":72,"./idExtractorInterceptor":73,"./linkExtractorInterceptor":75,"./paginationExtractorInterceptor":76,"./populateInterceptor":77}],75:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":73,"./idExtractorInterceptor":74,"./linkExtractorInterceptor":76,"./paginationExtractorInterceptor":77,"./populateInterceptor":78}],76:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7922,7 +7936,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],76:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],77:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7989,7 +8003,7 @@ var PaginationExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.PaginationExtractorInterceptor = PaginationExtractorInterceptor;
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],77:[function(require,module,exports){
+},{"debug":6,"lodash/object/has":36,"vador":50}],78:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -8099,10 +8113,5 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
 
 exports.PopulateInterceptor = PopulateInterceptor;
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],78:[function(require,module,exports){
-(function (global){
-"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],o=Object.getOwnPropertyDescriptor(r,i);o&&o.configurable&&void 0===e[i]&&Object.defineProperty(e,i,o)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug);global.Promise=require("yaku");var _halRestClient=require("./halRestClient/");_defaults(exports,_interopRequireWildcard(_halRestClient));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./halRestClient/":70,"./interceptors":74,"debug":6,"yaku":66}]},{},[78])(78)
+},{"debug":6,"lodash/object/has":36,"vador":50}]},{},[72])(72)
 });

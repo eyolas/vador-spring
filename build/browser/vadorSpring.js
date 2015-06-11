@@ -6547,7 +6547,7 @@ var HalRequest = (function (_Request) {
 
 exports.HalRequest = HalRequest;
 
-},{"../interceptors/":73,"./populate":70,"vador":50}],67:[function(require,module,exports){
+},{"../interceptors/":74,"./populate":70,"vador":50}],67:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6642,9 +6642,7 @@ var HalResource = (function (_RestResource) {
       if (value.id) {
         // remove duplicate slashes
         return ('' + href + '/' + value.id).replace(/\/{2,}/, '/');
-      } else {
-        throw new Error('For relation ' + rel + ', the value must have id');
-      }
+      } else {}
     }
   }, {
     key: 'save',
@@ -6673,6 +6671,9 @@ var HalResource = (function (_RestResource) {
 })(_vador.RestResource);
 
 exports.HalResource = HalResource;
+
+// no exception throw here, because subobjects can became from spring projection
+// throw new Error(`For relation ${rel}, the value must have id`);
 
 },{"./halRequest":66,"lodash/object/assign":35,"vador":50}],68:[function(require,module,exports){
 'use strict';
@@ -6835,6 +6836,9 @@ var Populate = (function () {
 exports.Populate = Populate;
 
 },{"lodash/lang/isObject":34,"lodash/object/set":39}],71:[function(require,module,exports){
+"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],n=Object.getOwnPropertyDescriptor(r,i);n&&n.configurable&&void 0===e[i]&&Object.defineProperty(e,i,n)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug),_halRestClient=require("./halRestClient/");_defaults(exports,_interopRequireWildcard(_halRestClient));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
+
+},{"./halRestClient/":69,"./interceptors":74,"debug":6}],72:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6968,7 +6972,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],72:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],73:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6991,7 +6995,7 @@ var _debug2 = _interopRequireDefault(_debug);
 
 var debug = new _debug2['default']('halClient [Interceptor]');
 
-var REGEX_LASTPART = /\/([^/]*)\/?$/;
+var REGEX_LASTPART = /.*\/([^\{]+)/; // get last element before { (example: /api/rest/credentials/admin{?projection} -> admin)
 
 var IdExtractorInterceptor = (function (_ResponseInterceptor) {
   function IdExtractorInterceptor() {
@@ -7054,7 +7058,7 @@ var IdExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.IdExtractorInterceptor = IdExtractorInterceptor;
 
-},{"debug":6,"vador":50}],73:[function(require,module,exports){
+},{"debug":6,"vador":50}],74:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7085,7 +7089,7 @@ var _paginationExtractorInterceptor = require('./paginationExtractorInterceptor'
 
 _defaults(exports, _interopRequireWildcard(_paginationExtractorInterceptor));
 
-},{"./embeddedExtractorInterceptor":71,"./idExtractorInterceptor":72,"./linkExtractorInterceptor":74,"./paginationExtractorInterceptor":75,"./populateInterceptor":76}],74:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":72,"./idExtractorInterceptor":73,"./linkExtractorInterceptor":75,"./paginationExtractorInterceptor":76,"./populateInterceptor":77}],75:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7216,7 +7220,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],75:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],76:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7283,7 +7287,7 @@ var PaginationExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.PaginationExtractorInterceptor = PaginationExtractorInterceptor;
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],76:[function(require,module,exports){
+},{"debug":6,"lodash/object/has":36,"vador":50}],77:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7393,8 +7397,5 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
 
 exports.PopulateInterceptor = PopulateInterceptor;
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],77:[function(require,module,exports){
-"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],n=Object.getOwnPropertyDescriptor(r,i);n&&n.configurable&&void 0===e[i]&&Object.defineProperty(e,i,n)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug),_halRestClient=require("./halRestClient/");_defaults(exports,_interopRequireWildcard(_halRestClient));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
-
-},{"./halRestClient/":69,"./interceptors":73,"debug":6}]},{},[77])(77)
+},{"debug":6,"lodash/object/has":36,"vador":50}]},{},[71])(71)
 });

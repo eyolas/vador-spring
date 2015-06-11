@@ -3,7 +3,7 @@ import Debug from 'debug';
 
 var debug = new Debug('halClient [Interceptor]');
 
-const REGEX_LASTPART = /\/([^/]*)\/?$/;
+const REGEX_LASTPART = /.*\/([^\{]+)/; // get last element before { (example: /api/rest/credentials/admin{?projection} -> admin)
 
 export class IdExtractorInterceptor extends ResponseInterceptor {
 

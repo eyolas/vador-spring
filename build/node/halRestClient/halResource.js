@@ -92,9 +92,7 @@ var HalResource = (function (_RestResource) {
       if (value.id) {
         // remove duplicate slashes
         return ('' + href + '/' + value.id).replace(/\/{2,}/, '/');
-      } else {
-        throw new Error('For relation ' + rel + ', the value must have id');
-      }
+      } else {}
     }
   }, {
     key: 'save',
@@ -123,3 +121,6 @@ var HalResource = (function (_RestResource) {
 })(_vador.RestResource);
 
 exports.HalResource = HalResource;
+
+// no exception throw here, because subobjects can became from spring projection
+// throw new Error(`For relation ${rel}, the value must have id`);
