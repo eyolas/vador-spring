@@ -1,6 +1,10 @@
+import {config} from 'vador';
+
 if (process.env.TYPE_BUILD === "yaku") {
-  global.Promise = require('yaku');
+  config.Promise = require('yaku');
 }
+
+export {config};
 
 export * from './halRestClient/';
 export * from './interceptors';

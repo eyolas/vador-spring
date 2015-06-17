@@ -3304,6 +3304,10 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
 
+var _restClientConfig = require('./restClient/config');
+
+_defaults(exports, _interopRequireWildcard(_restClientConfig));
+
 var _restClient = require('./restClient/');
 
 _defaults(exports, _interopRequireWildcard(_restClient));
@@ -3311,7 +3315,46 @@ _defaults(exports, _interopRequireWildcard(_restClient));
 var _coreBaseInterceptors = require('./core/baseInterceptors');
 
 _defaults(exports, _interopRequireWildcard(_coreBaseInterceptors));
-},{"./core/baseInterceptors":47,"./restClient/":52}],51:[function(require,module,exports){
+},{"./core/baseInterceptors":47,"./restClient/":53,"./restClient/config":51}],51:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _utils = require('./utils');
+
+var Config = (function () {
+  function Config() {
+    _classCallCheck(this, Config);
+
+    this._promise = Promise;
+  }
+
+  _createClass(Config, [{
+    key: 'Promise',
+    set: function (promise) {
+      if (!(0, _utils.isPromise)(promise)) {
+        throw new Error('Promise must be a promise');
+      } else {
+        this._promise = promise;
+      }
+    },
+    get: function () {
+      return this._promise;
+    }
+  }]);
+
+  return Config;
+})();
+
+var config = new Config();
+exports.config = config;
+},{"./utils":58}],52:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3324,11 +3367,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _superagentEs6Promise = require('superagent-es6-promise');
+var _superagentInterfacePromise = require('superagent-interface-promise');
 
-var _superagentEs6Promise2 = _interopRequireDefault(_superagentEs6Promise);
+var _superagentInterfacePromise2 = _interopRequireDefault(_superagentInterfacePromise);
 
 var _utils = require('./utils');
+
+var _config = require('./config');
 
 var Http = (function () {
   function Http() {
@@ -3338,7 +3383,8 @@ var Http = (function () {
   _createClass(Http, [{
     key: 'request',
     value: function request(_request) {
-      var r = (0, _superagentEs6Promise2['default'])(_request.method, _request.url);
+      _superagentInterfacePromise2['default'].Promise = _config.config.Promise;
+      var r = (0, _superagentInterfacePromise2['default'])(_request.method, _request.url);
 
       Object.keys(_request.headers).forEach(function (header) {
         return r.set(header, _request.headers[header]);
@@ -3359,7 +3405,7 @@ var Http = (function () {
 })();
 
 exports.Http = Http;
-},{"./utils":57,"superagent-es6-promise":58}],52:[function(require,module,exports){
+},{"./config":51,"./utils":58,"superagent-interface-promise":59}],53:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3385,7 +3431,11 @@ _defaults(exports, _interopRequireWildcard(_response));
 var _restResource = require('./restResource');
 
 _defaults(exports, _interopRequireWildcard(_restResource));
-},{"./request":53,"./response":54,"./restClient":55,"./restResource":56}],53:[function(require,module,exports){
+
+var _config = require('./config');
+
+_defaults(exports, _interopRequireWildcard(_config));
+},{"./config":51,"./request":54,"./response":55,"./restClient":56,"./restResource":57}],54:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3401,6 +3451,8 @@ var _utils = require('./utils');
 var _response = require('./response');
 
 var _coreBaseInterceptors = require('../core/baseInterceptors/');
+
+var _config = require('./config');
 
 var Request = (function () {
   function Request(baseUrl, resourceName, restResource) {
@@ -3544,6 +3596,12 @@ var Request = (function () {
             }
           }
           return new _response.Response(value, result, request);
+        }, function (error) {
+          if (error.status && error.status == 404) {
+            return new _response.Response(null, error.res, request);
+          } else {
+            return _config.config.Promise.reject(error);
+          }
         });
       };
 
@@ -3561,7 +3619,7 @@ var Request = (function () {
         });
       }
 
-      var promise = Promise.resolve(this);
+      var promise = _config.config.Promise.resolve(this);
       while (chain.length) {
         var thenFn = chain.shift();
         var rejectFn = chain.shift();
@@ -3570,7 +3628,7 @@ var Request = (function () {
       }
 
       promise = promise.then(function (res) {
-        if (withProxy) {
+        if (withProxy && res.value) {
           res.value = _this3.proxify(res);
         }
         return res;
@@ -3592,7 +3650,7 @@ var Request = (function () {
 })();
 
 exports.Request = Request;
-},{"../core/baseInterceptors/":47,"./response":54,"./utils":57}],54:[function(require,module,exports){
+},{"../core/baseInterceptors/":47,"./config":51,"./response":55,"./utils":58}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3629,7 +3687,7 @@ var Response = (function () {
 })();
 
 exports.Response = Response;
-},{"lodash/lang/isObject":34}],55:[function(require,module,exports){
+},{"lodash/lang/isObject":34}],56:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3720,7 +3778,7 @@ var RestClient = (function () {
 })();
 
 exports.RestClient = RestClient;
-},{"./http":51,"./restResource":56,"lodash/object/assign":35}],56:[function(require,module,exports){
+},{"./http":52,"./restResource":57,"lodash/object/assign":35}],57:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3845,7 +3903,7 @@ var RestResource = (function () {
 })();
 
 exports.RestResource = RestResource;
-},{"./http":51,"./request":53,"lodash/lang/isObject":34,"uri-template":62}],57:[function(require,module,exports){
+},{"./http":52,"./request":54,"lodash/lang/isObject":34,"uri-template":63}],58:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3853,6 +3911,7 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.isNotEmpty = isNotEmpty;
 exports.normalizeUrl = normalizeUrl;
+exports.isPromise = isPromise;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -3862,9 +3921,24 @@ var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
 
 var IS_ABSOLUTE = /^http.*/;
 
+/**
+ * Check if `arr` is not empty
+ *  - null return false
+ *  - {} return false
+ *  - [] return false
+ * @param  {Mixed}  arr
+ * @return {Boolean}
+ */
+
 function isNotEmpty(arr) {
   return arr && Array.isArray(arr) && arr.length;
 }
+
+/**
+ * Normalize an url.
+ * @param  {String} url
+ * @return {String}
+ */
 
 function normalizeUrl(url) {
   if (!IS_ABSOLUTE.test(url)) {
@@ -3873,9 +3947,21 @@ function normalizeUrl(url) {
     return (0, _normalizeUrl2['default'])(url);
   }
 }
-},{"normalize-url":42}],58:[function(require,module,exports){
+
+/**
+ * Check if `obj` is a generator.
+ *
+ * @param {Mixed} obj
+ * @return {Boolean}
+ */
+
+function isPromise(obj) {
+  return 'function' == typeof obj.resolve;
+}
+},{"normalize-url":42}],59:[function(require,module,exports){
 // So you can `var request = require("superagent-es6-promise")`
 var superagent = module.exports = require("superagent");
+superagent.Promise = Promise;
 var Request = superagent.Request;
 
 // Create custom error type.
@@ -3900,23 +3986,22 @@ SuperagentPromiseError.prototype.constructor = SuperagentPromiseError;
  * Call .promise() to return promise for the request
  *
  * @method then
- * @return {Bluebird.Promise}
+ * @return {Promise}
  */
 Request.prototype.promise = function() {
   var req = this;
   var error;
 
-  return new Promise(function(resolve, reject) {
+  return new superagent.Promise(function(resolve, reject) {
       req.end(function(err, res) {
-        if (typeof res !== "undefined" && res.status >= 400) {
-          var msg = 'cannot ' + req.method + ' ' + req.url + ' (' + res.status + ')';
-          error = new SuperagentPromiseError(msg);
-          error.status = res.status;
-          error.body = res.body;
-          error.res = res;
+        if (err) {
+          error = new SuperagentPromiseError(err);
+          if (res) {
+            error.status = res.status;
+            error.body = res.body;
+            error.res = res;
+          }
           reject(error);
-        } else if (err) {
-          reject(new SuperagentPromiseError(err));
         } else {
           resolve(res);
         }
@@ -3940,7 +4025,7 @@ Request.prototype.then = function() {
   return promise.then.apply(promise, arguments);
 };
 
-},{"superagent":59}],59:[function(require,module,exports){
+},{"superagent":60}],60:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -5065,7 +5150,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":60,"reduce":61}],60:[function(require,module,exports){
+},{"emitter":61,"reduce":62}],61:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -5231,7 +5316,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -5256,7 +5341,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 module.exports = (function(){
   /*
    * Generated by PEG.js 0.7.0.
@@ -5983,7 +6068,7 @@ module.exports = (function(){
   return result;
 })();
 
-},{"./lib/classes":63}],63:[function(require,module,exports){
+},{"./lib/classes":64}],64:[function(require,module,exports){
 // Generated by CoffeeScript 1.6.3
 (function() {
   var FormContinuationExpression, FormStartExpression, FragmentExpression, LabelExpression, NamedExpression, PathParamExpression, PathSegmentExpression, ReservedExpression, SimpleExpression, Template, encoders, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
@@ -6402,7 +6487,7 @@ module.exports = (function(){
 
 }).call(this);
 
-},{"./encoders":64}],64:[function(require,module,exports){
+},{"./encoders":65}],65:[function(require,module,exports){
 // Generated by CoffeeScript 1.6.3
 (function() {
   var pctEncode;
@@ -6415,7 +6500,7 @@ module.exports = (function(){
 
 }).call(this);
 
-},{"pct-encode":65}],65:[function(require,module,exports){
+},{"pct-encode":66}],66:[function(require,module,exports){
 module.exports = function pctEncode(regexp) {
   regexp = regexp || /\W/g;
   return function encode(string) {
@@ -6440,10 +6525,10 @@ module.exports = function pctEncode(regexp) {
   }
 }
 
-},{}],66:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 (function (__filename){
 /*
- Yaku v0.2.0
+ Yaku v0.2.1
  (c) 2015 Yad Smood. http://ysmood.org
  License MIT
 */
@@ -6678,24 +6763,26 @@ module.exports = function pctEncode(regexp) {
      */
 
     Yaku.onUnhandledRejection = function(reason, p) {
-      var format, hStack;
+      var stackInfo, stackStr;
       if (!isObject(console)) {
         return;
       }
-      hStack = '\n';
+      stackInfo = [(reason ? reason.stack ? reason.stack.trim() : reason : reason)];
       if (isLongStackTrace && p[$promiseTrace]) {
         if (p[$settlerTrace]) {
-          hStack += p[$settlerTrace];
+          stackInfo.push(p[$settlerTrace].trim());
         }
         while (p) {
-          hStack += p[$promiseTrace];
+          stackInfo.push(p[$promiseTrace].trim());
           p = p._pre;
         }
       }
-      format = function(str) {
-        return (typeof __filename === 'string' ? str.replace(RegExp(".+" + __filename + ".+\\n?", "g"), '') : str).replace(/\n$/, '');
-      };
-      return console.error('Unhandled Rejection:', (reason ? reason.stack ? format(reason.stack) : reason : reason), format(hStack));
+      stackStr = stackInfo.join('\n');
+      if (typeof __filename === 'string') {
+        stackStr = stackStr.replace(RegExp(".+" + __filename + ".+\\n?", "g"), '');
+      }
+      console.error('Unhandled Rejection:', stackStr);
+      return stackInfo;
     };
 
     isLongStackTrace = false;
@@ -6891,7 +6978,7 @@ module.exports = function pctEncode(regexp) {
     };
 
     genTraceInfo = function(noTitle) {
-      return (new Error).stack.replace('Error\n', (noTitle ? '' : ' From previous event:\n'));
+      return (new Error).stack.replace('Error', (noTitle ? '' : 'From previous event:'));
     };
 
 
@@ -6925,8 +7012,6 @@ module.exports = function pctEncode(regexp) {
     Yaku.prototype._pCount = 0;
 
     Yaku.prototype._pre = null;
-
-    Yaku.prototype._hasUnhandled = false;
 
 
     /**
@@ -7008,16 +7093,24 @@ module.exports = function pctEncode(regexp) {
     });
 
     scheduleUnhandledRejection = genScheduler(100, function(p) {
-      var pre;
-      pre = p;
-      while (pre) {
-        if (pre._hasUnhandled) {
+      var iter;
+      iter = function(node) {
+        var i, len;
+        i = 0;
+        len = node._pCount;
+        if (node._onRejected) {
           return;
         }
-        pre._hasUnhandled = true;
-        pre = pre._pre;
+        while (i < len) {
+          if (!iter(node[i++])) {
+            return;
+          }
+        }
+        return true;
+      };
+      if (iter(p)) {
+        Yaku.onUnhandledRejection(p._value, p);
       }
-      Yaku.onUnhandledRejection(p._value, p);
     });
 
     callHanler = function(handler, value) {
@@ -7040,14 +7133,13 @@ module.exports = function pctEncode(regexp) {
       }
       p._state = state;
       p._value = value;
-      if (state === $rejected) {
+      if (state === $rejected && (!p._pre || p._pre._state === $resolved)) {
         scheduleUnhandledRejection(p);
       }
       i = 0;
       len = p._pCount;
       while (i < len) {
-        scheduleHandler(p, p[i]);
-        release(p, i++);
+        scheduleHandler(p, p[i++]);
       }
       return p;
     };
@@ -7074,7 +7166,8 @@ module.exports = function pctEncode(regexp) {
         }
         if (isFunction(xthen)) {
           if (x instanceof Yaku) {
-            x._pre = p;
+            x._pre = p._pre;
+            p._pre = x;
           }
           settleXthen(p, x, xthen);
         } else {
@@ -7146,7 +7239,7 @@ module.exports = function pctEncode(regexp) {
 })(this || window);
 
 }).call(this,"/node_modules/yaku/dist/yaku.js")
-},{}],67:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7253,7 +7346,7 @@ var HalRequest = (function (_Request) {
 
 exports.HalRequest = HalRequest;
 
-},{"../interceptors/":74,"./populate":71,"vador":50}],68:[function(require,module,exports){
+},{"../interceptors/":76,"./populate":72,"vador":50}],69:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7380,7 +7473,7 @@ var HalResource = (function (_RestResource) {
 
 exports.HalResource = HalResource;
 
-},{"./halRequest":67,"lodash/object/assign":35,"vador":50}],69:[function(require,module,exports){
+},{"./halRequest":68,"lodash/object/assign":35,"vador":50}],70:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7426,7 +7519,7 @@ var HalRestClient = (function (_RestClient) {
 
 exports.HalRestClient = HalRestClient;
 
-},{"./halResource":68,"lodash/object/assign":35,"vador":50}],70:[function(require,module,exports){
+},{"./halResource":69,"lodash/object/assign":35,"vador":50}],71:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7449,7 +7542,7 @@ var _halRequest = require('./halRequest');
 
 _defaults(exports, _interopRequireWildcard(_halRequest));
 
-},{"./halRequest":67,"./halResource":68,"./halRestClient":69}],71:[function(require,module,exports){
+},{"./halRequest":68,"./halResource":69,"./halRestClient":70}],72:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7540,7 +7633,10 @@ var Populate = (function () {
 
 exports.Populate = Populate;
 
-},{"lodash/lang/isObject":34,"lodash/object/set":39}],72:[function(require,module,exports){
+},{"lodash/lang/isObject":34,"lodash/object/set":39}],73:[function(require,module,exports){
+"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],o=Object.getOwnPropertyDescriptor(r,i);o&&o.configurable&&void 0===e[i]&&Object.defineProperty(e,i,o)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _vador=require("vador"),_debug=require("debug"),_debug2=_interopRequireDefault(_debug);_vador.config.Promise=require("yaku"),exports.config=_vador.config;var _halRestClient=require("./halRestClient/");_defaults(exports,_interopRequireWildcard(_halRestClient));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
+
+},{"./halRestClient/":71,"./interceptors":76,"debug":6,"vador":50,"yaku":67}],74:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7674,7 +7770,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],73:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],75:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7760,7 +7856,7 @@ var IdExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.IdExtractorInterceptor = IdExtractorInterceptor;
 
-},{"debug":6,"vador":50}],74:[function(require,module,exports){
+},{"debug":6,"vador":50}],76:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7791,7 +7887,7 @@ var _paginationExtractorInterceptor = require('./paginationExtractorInterceptor'
 
 _defaults(exports, _interopRequireWildcard(_paginationExtractorInterceptor));
 
-},{"./embeddedExtractorInterceptor":72,"./idExtractorInterceptor":73,"./linkExtractorInterceptor":75,"./paginationExtractorInterceptor":76,"./populateInterceptor":77}],75:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":74,"./idExtractorInterceptor":75,"./linkExtractorInterceptor":77,"./paginationExtractorInterceptor":78,"./populateInterceptor":79}],77:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7922,7 +8018,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],76:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],78:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7989,7 +8085,7 @@ var PaginationExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.PaginationExtractorInterceptor = PaginationExtractorInterceptor;
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],77:[function(require,module,exports){
+},{"debug":6,"lodash/object/has":36,"vador":50}],79:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -8099,10 +8195,5 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
 
 exports.PopulateInterceptor = PopulateInterceptor;
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],78:[function(require,module,exports){
-(function (global){
-"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],o=Object.getOwnPropertyDescriptor(r,i);o&&o.configurable&&void 0===e[i]&&Object.defineProperty(e,i,o)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _debug=require("debug"),_debug2=_interopRequireDefault(_debug);global.Promise=require("yaku");var _halRestClient=require("./halRestClient/");_defaults(exports,_interopRequireWildcard(_halRestClient));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./halRestClient/":70,"./interceptors":74,"debug":6,"yaku":66}]},{},[78])(78)
+},{"debug":6,"lodash/object/has":36,"vador":50}]},{},[73])(73)
 });
