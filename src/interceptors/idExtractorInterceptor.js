@@ -3,7 +3,7 @@ import Debug from 'debug';
 
 var debug = new Debug('halClient [Interceptor]');
 
-const REGEX_LASTPART = /\/([^/]*)\/?$/;
+const REGEX_LASTPART = /\/([^/{]*)({[^/{]*})?\/?$/;
 
 export class IdExtractorInterceptor extends ResponseInterceptor {
 
