@@ -7793,7 +7793,7 @@ var _debug2 = _interopRequireDefault(_debug);
 
 var debug = new _debug2['default']('halClient [Interceptor]');
 
-var REGEX_LASTPART = /\/([^/]*)\/?$/;
+var REGEX_LASTPART = /\/([^/{]*)({[^/{]*})?\/?$/;
 
 var IdExtractorInterceptor = (function (_ResponseInterceptor) {
   function IdExtractorInterceptor() {
