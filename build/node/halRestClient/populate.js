@@ -22,7 +22,7 @@ var Populate = (function () {
   function Populate() {
     var _this = this;
 
-    var populates = arguments[0] === undefined ? [] : arguments[0];
+    var populates = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
 
     _classCallCheck(this, Populate);
 
@@ -78,7 +78,7 @@ var Populate = (function () {
     }
   }, {
     key: 'populates',
-    get: function () {
+    get: function get() {
       return this._populates;
     }
   }]);

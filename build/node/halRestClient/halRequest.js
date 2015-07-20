@@ -6,7 +6,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -19,8 +19,10 @@ var _populate = require('./populate');
 var _interceptors = require('../interceptors/');
 
 var HalRequest = (function (_Request) {
+  _inherits(HalRequest, _Request);
+
   function HalRequest(baseUrl, resourceName, restResource) {
-    var config = arguments[3] === undefined ? {} : arguments[3];
+    var config = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
     _classCallCheck(this, HalRequest);
 
@@ -35,18 +37,12 @@ var HalRequest = (function (_Request) {
     this._interceptors = interceptors.concat(this._interceptors);
   }
 
-  _inherits(HalRequest, _Request);
-
   _createClass(HalRequest, [{
     key: 'populate',
     value: function populate() {
       var _populates;
 
-      for (var _len = arguments.length, rel = Array(_len), _key = 0; _key < _len; _key++) {
-        rel[_key] = arguments[_key];
-      }
-
-      (_populates = this._populates).push.apply(_populates, rel);
+      (_populates = this._populates).push.apply(_populates, arguments);
       return this;
     }
   }, {
@@ -72,7 +68,7 @@ var HalRequest = (function (_Request) {
             var r = _this.restResource._createSubInstance(url, rel);
             (function (request) {
               var value = undefined;
-              Object.defineProperty(obj, '' + rel + 'Async', {
+              Object.defineProperty(obj, rel + 'Async', {
                 enumerable: false,
                 get: function get() {
                   if (value !== undefined) {
@@ -94,7 +90,7 @@ var HalRequest = (function (_Request) {
     }
   }, {
     key: 'populates',
-    get: function () {
+    get: function get() {
       return new _populate.Populate(this._populates);
     }
   }]);

@@ -6,7 +6,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -23,15 +23,13 @@ var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 var _halRequest = require('./halRequest');
 
 var HalResource = (function (_RestResource) {
+  _inherits(HalResource, _RestResource);
+
   function HalResource() {
     _classCallCheck(this, HalResource);
 
-    if (_RestResource != null) {
-      _RestResource.apply(this, arguments);
-    }
+    _get(Object.getPrototypeOf(HalResource.prototype), 'constructor', this).apply(this, arguments);
   }
-
-  _inherits(HalResource, _RestResource);
 
   _createClass(HalResource, [{
     key: '_createSubInstance',
@@ -41,9 +39,9 @@ var HalResource = (function (_RestResource) {
   }, {
     key: 'constructBaseRequest',
     value: function constructBaseRequest() {
-      var method = arguments[0] === undefined ? 'get' : arguments[0];
-      var responseType = arguments[1] === undefined ? Array : arguments[1];
-      var addUrl = arguments[2] === undefined ? '' : arguments[2];
+      var method = arguments.length <= 0 || arguments[0] === undefined ? 'get' : arguments[0];
+      var responseType = arguments.length <= 1 || arguments[1] === undefined ? Array : arguments[1];
+      var addUrl = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
 
       var request = new _halRequest.HalRequest(this._baseUrl, this.resourceName, this, this._config);
       request.responseType = responseType;
@@ -91,7 +89,7 @@ var HalResource = (function (_RestResource) {
 
       if (value.id) {
         // remove duplicate slashes
-        return ('' + href + '/' + value.id).replace(/\/{2,}/, '/');
+        return (href + '/' + value.id).replace(/\/{2,}/, '/');
       } else {
         throw new Error('For relation ' + rel + ', the value must have id');
       }

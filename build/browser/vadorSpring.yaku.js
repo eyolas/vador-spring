@@ -2031,7 +2031,7 @@ function assignWith(object, source, customizer) {
 
 module.exports = assignWith;
 
-},{"../object/keys":37}],12:[function(require,module,exports){
+},{"../object/keys":38}],12:[function(require,module,exports){
 var baseCopy = require('./baseCopy'),
     keys = require('../object/keys');
 
@@ -2052,7 +2052,7 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"../object/keys":37,"./baseCopy":13}],13:[function(require,module,exports){
+},{"../object/keys":38,"./baseCopy":13}],13:[function(require,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -2168,9 +2168,6 @@ module.exports = baseSlice;
  * @returns {string} Returns the string.
  */
 function baseToString(value) {
-  if (typeof value == 'string') {
-    return value;
-  }
   return value == null ? '' : (value + '');
 }
 
@@ -2223,10 +2220,7 @@ var bindCallback = require('./bindCallback'),
     restParam = require('../function/restParam');
 
 /**
- * Creates a function that assigns properties of source object(s) to a given
- * destination object.
- *
- * **Note:** This function is used to create `_.assign`, `_.defaults`, and `_.merge`.
+ * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
  *
  * @private
  * @param {Function} assigner The function to assign values.
@@ -2298,7 +2292,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"../lang/isNative":33}],22:[function(require,module,exports){
+},{"../lang/isNative":34}],22:[function(require,module,exports){
 var getLength = require('./getLength'),
     isLength = require('./isLength');
 
@@ -2320,7 +2314,7 @@ module.exports = isArrayLike;
 var reIsUint = /^\d+$/;
 
 /**
- * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
+ * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
  */
 var MAX_SAFE_INTEGER = 9007199254740991;
@@ -2371,7 +2365,7 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"../lang/isObject":34,"./isArrayLike":22,"./isIndex":23}],25:[function(require,module,exports){
+},{"../lang/isObject":35,"./isArrayLike":22,"./isIndex":23}],25:[function(require,module,exports){
 var isArray = require('../lang/isArray'),
     toObject = require('./toObject');
 
@@ -2403,7 +2397,7 @@ module.exports = isKey;
 
 },{"../lang/isArray":32,"./toObject":29}],26:[function(require,module,exports){
 /**
- * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
+ * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
  */
 var MAX_SAFE_INTEGER = 9007199254740991;
@@ -2411,7 +2405,7 @@ var MAX_SAFE_INTEGER = 9007199254740991;
 /**
  * Checks if `value` is a valid array-like length.
  *
- * **Note:** This function is based on [`ToLength`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-tolength).
+ * **Note:** This function is based on [`ToLength`](http://ecma-international.org/ecma-262/6.0/#sec-tolength).
  *
  * @private
  * @param {*} value The value to check.
@@ -2480,7 +2474,7 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"../lang/isArguments":31,"../lang/isArray":32,"../object/keysIn":38,"./isIndex":23,"./isLength":26}],29:[function(require,module,exports){
+},{"../lang/isArguments":31,"../lang/isArray":32,"../object/keysIn":39,"./isIndex":23,"./isLength":26}],29:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -2496,7 +2490,7 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"../lang/isObject":34}],30:[function(require,module,exports){
+},{"../lang/isObject":35}],30:[function(require,module,exports){
 var baseToString = require('./baseToString'),
     isArray = require('../lang/isArray');
 
@@ -2530,17 +2524,14 @@ module.exports = toPath;
 var isArrayLike = require('../internal/isArrayLike'),
     isObjectLike = require('../internal/isObjectLike');
 
-/** `Object#toString` result references. */
-var argsTag = '[object Arguments]';
-
 /** Used for native method references. */
 var objectProto = Object.prototype;
 
-/**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
- * of values.
- */
-var objToString = objectProto.toString;
+/** Used to check objects for own properties. */
+var hasOwnProperty = objectProto.hasOwnProperty;
+
+/** Native method references. */
+var propertyIsEnumerable = objectProto.propertyIsEnumerable;
 
 /**
  * Checks if `value` is classified as an `arguments` object.
@@ -2559,7 +2550,8 @@ var objToString = objectProto.toString;
  * // => false
  */
 function isArguments(value) {
-  return isObjectLike(value) && isArrayLike(value) && objToString.call(value) == argsTag;
+  return isObjectLike(value) && isArrayLike(value) &&
+    hasOwnProperty.call(value, 'callee') && !propertyIsEnumerable.call(value, 'callee');
 }
 
 module.exports = isArguments;
@@ -2576,7 +2568,7 @@ var arrayTag = '[object Array]';
 var objectProto = Object.prototype;
 
 /**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
  * of values.
  */
 var objToString = objectProto.toString;
@@ -2607,11 +2599,48 @@ var isArray = nativeIsArray || function(value) {
 module.exports = isArray;
 
 },{"../internal/getNative":21,"../internal/isLength":26,"../internal/isObjectLike":27}],33:[function(require,module,exports){
-var escapeRegExp = require('../string/escapeRegExp'),
-    isObjectLike = require('../internal/isObjectLike');
+var isObject = require('./isObject');
 
 /** `Object#toString` result references. */
 var funcTag = '[object Function]';
+
+/** Used for native method references. */
+var objectProto = Object.prototype;
+
+/**
+ * Used to resolve the [`toStringTag`](http://ecma-international.org/ecma-262/6.0/#sec-object.prototype.tostring)
+ * of values.
+ */
+var objToString = objectProto.toString;
+
+/**
+ * Checks if `value` is classified as a `Function` object.
+ *
+ * @static
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is correctly classified, else `false`.
+ * @example
+ *
+ * _.isFunction(_);
+ * // => true
+ *
+ * _.isFunction(/abc/);
+ * // => false
+ */
+function isFunction(value) {
+  // The use of `Object#toString` avoids issues with the `typeof` operator
+  // in older versions of Chrome and Safari which return 'function' for regexes
+  // and Safari 8 equivalents which return 'object' for typed array constructors.
+  return isObject(value) && objToString.call(value) == funcTag;
+}
+
+module.exports = isFunction;
+
+},{"./isObject":35}],34:[function(require,module,exports){
+var isFunction = require('./isFunction'),
+    isObjectLike = require('../internal/isObjectLike');
 
 /** Used to detect host constructors (Safari > 5). */
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -2625,15 +2654,9 @@ var fnToString = Function.prototype.toString;
 /** Used to check objects for own properties. */
 var hasOwnProperty = objectProto.hasOwnProperty;
 
-/**
- * Used to resolve the [`toStringTag`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.prototype.tostring)
- * of values.
- */
-var objToString = objectProto.toString;
-
 /** Used to detect if a method is native. */
 var reIsNative = RegExp('^' +
-  escapeRegExp(fnToString.call(hasOwnProperty))
+  fnToString.call(hasOwnProperty).replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
   .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
 );
 
@@ -2657,7 +2680,7 @@ function isNative(value) {
   if (value == null) {
     return false;
   }
-  if (objToString.call(value) == funcTag) {
+  if (isFunction(value)) {
     return reIsNative.test(fnToString.call(value));
   }
   return isObjectLike(value) && reIsHostCtor.test(value);
@@ -2665,7 +2688,7 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"../internal/isObjectLike":27,"../string/escapeRegExp":40}],34:[function(require,module,exports){
+},{"../internal/isObjectLike":27,"./isFunction":33}],35:[function(require,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -2695,7 +2718,7 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 var assignWith = require('../internal/assignWith'),
     baseAssign = require('../internal/baseAssign'),
     createAssigner = require('../internal/createAssigner');
@@ -2708,7 +2731,7 @@ var assignWith = require('../internal/assignWith'),
  * (objectValue, sourceValue, key, object, source).
  *
  * **Note:** This method mutates `object` and is based on
- * [`Object.assign`](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.assign).
+ * [`Object.assign`](http://ecma-international.org/ecma-262/6.0/#sec-object.assign).
  *
  * @static
  * @memberOf _
@@ -2740,7 +2763,7 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"../internal/assignWith":11,"../internal/baseAssign":12,"../internal/createAssigner":19}],36:[function(require,module,exports){
+},{"../internal/assignWith":11,"../internal/baseAssign":12,"../internal/createAssigner":19}],37:[function(require,module,exports){
 var baseGet = require('../internal/baseGet'),
     baseSlice = require('../internal/baseSlice'),
     isArguments = require('../lang/isArguments'),
@@ -2799,7 +2822,7 @@ function has(object, path) {
 
 module.exports = has;
 
-},{"../array/last":9,"../internal/baseGet":14,"../internal/baseSlice":16,"../internal/isIndex":23,"../internal/isKey":25,"../internal/isLength":26,"../internal/toPath":30,"../lang/isArguments":31,"../lang/isArray":32}],37:[function(require,module,exports){
+},{"../array/last":9,"../internal/baseGet":14,"../internal/baseSlice":16,"../internal/isIndex":23,"../internal/isKey":25,"../internal/isLength":26,"../internal/toPath":30,"../lang/isArguments":31,"../lang/isArray":32}],38:[function(require,module,exports){
 var getNative = require('../internal/getNative'),
     isArrayLike = require('../internal/isArrayLike'),
     isObject = require('../lang/isObject'),
@@ -2812,7 +2835,7 @@ var nativeKeys = getNative(Object, 'keys');
  * Creates an array of the own enumerable property names of `object`.
  *
  * **Note:** Non-object values are coerced to objects. See the
- * [ES spec](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.keys)
+ * [ES spec](http://ecma-international.org/ecma-262/6.0/#sec-object.keys)
  * for more details.
  *
  * @static
@@ -2836,7 +2859,7 @@ var nativeKeys = getNative(Object, 'keys');
  * // => ['0', '1']
  */
 var keys = !nativeKeys ? shimKeys : function(object) {
-  var Ctor = object == null ? null : object.constructor;
+  var Ctor = object == null ? undefined : object.constructor;
   if ((typeof Ctor == 'function' && Ctor.prototype === object) ||
       (typeof object != 'function' && isArrayLike(object))) {
     return shimKeys(object);
@@ -2846,7 +2869,7 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"../internal/getNative":21,"../internal/isArrayLike":22,"../internal/shimKeys":28,"../lang/isObject":34}],38:[function(require,module,exports){
+},{"../internal/getNative":21,"../internal/isArrayLike":22,"../internal/shimKeys":28,"../lang/isObject":35}],39:[function(require,module,exports){
 var isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
     isIndex = require('../internal/isIndex'),
@@ -2912,7 +2935,7 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"../internal/isIndex":23,"../internal/isLength":26,"../lang/isArguments":31,"../lang/isArray":32,"../lang/isObject":34}],39:[function(require,module,exports){
+},{"../internal/isIndex":23,"../internal/isLength":26,"../lang/isArguments":31,"../lang/isArray":32,"../lang/isObject":35}],40:[function(require,module,exports){
 var isIndex = require('../internal/isIndex'),
     isKey = require('../internal/isKey'),
     isObject = require('../lang/isObject'),
@@ -2969,41 +2992,7 @@ function set(object, path, value) {
 
 module.exports = set;
 
-},{"../internal/isIndex":23,"../internal/isKey":25,"../internal/toPath":30,"../lang/isObject":34}],40:[function(require,module,exports){
-var baseToString = require('../internal/baseToString');
-
-/**
- * Used to match `RegExp` [special characters](http://www.regular-expressions.info/characters.html#special).
- * In addition to special characters the forward slash is escaped to allow for
- * easier `eval` use and `Function` compilation.
- */
-var reRegExpChars = /[.*+?^${}()|[\]\/\\]/g,
-    reHasRegExpChars = RegExp(reRegExpChars.source);
-
-/**
- * Escapes the `RegExp` special characters "\", "/", "^", "$", ".", "|", "?",
- * "*", "+", "(", ")", "[", "]", "{" and "}" in `string`.
- *
- * @static
- * @memberOf _
- * @category String
- * @param {string} [string=''] The string to escape.
- * @returns {string} Returns the escaped string.
- * @example
- *
- * _.escapeRegExp('[lodash](https://lodash.com/)');
- * // => '\[lodash\]\(https:\/\/lodash\.com\/\)'
- */
-function escapeRegExp(string) {
-  string = baseToString(string);
-  return (string && reHasRegExpChars.test(string))
-    ? string.replace(reRegExpChars, '\\$&')
-    : string;
-}
-
-module.exports = escapeRegExp;
-
-},{"../internal/baseToString":17}],41:[function(require,module,exports){
+},{"../internal/isIndex":23,"../internal/isKey":25,"../internal/toPath":30,"../lang/isObject":35}],41:[function(require,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -3043,7 +3032,8 @@ var DEFAULT_PORTS = {
 module.exports = function (str, opts) {
 	opts = objectAssign({
 		normalizeProtocol: true,
-		stripFragment: true
+		stripFragment: true,
+		stripWWW: true
 	}, opts);
 
 	if (typeof str !== 'string') {
@@ -3084,7 +3074,9 @@ module.exports = function (str, opts) {
 	urlObj.hostname = punycode.toUnicode(urlObj.hostname).toLowerCase();
 
 	// remove `www.`
-	urlObj.hostname = urlObj.hostname.replace(/^www\./, '');
+	if (opts.stripWWW) {
+		urlObj.hostname = urlObj.hostname.replace(/^www\./, '');
+	}
 
 	// remove URL with empty query string
 	if (urlObj.search === '?') {
@@ -3113,6 +3105,7 @@ module.exports = function (str, opts) {
 
 },{"object-assign":43,"prepend-http":44,"punycode":1,"query-string":45,"sort-keys":46,"url":5}],43:[function(require,module,exports){
 'use strict';
+var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
 function ToObject(val) {
 	if (val == null) {
@@ -3122,6 +3115,18 @@ function ToObject(val) {
 	return Object(val);
 }
 
+function ownEnumerableKeys(obj) {
+	var keys = Object.getOwnPropertyNames(obj);
+
+	if (Object.getOwnPropertySymbols) {
+		keys = keys.concat(Object.getOwnPropertySymbols(obj));
+	}
+
+	return keys.filter(function (key) {
+		return propIsEnumerable.call(obj, key);
+	});
+}
+
 module.exports = Object.assign || function (target, source) {
 	var from;
 	var keys;
@@ -3129,7 +3134,7 @@ module.exports = Object.assign || function (target, source) {
 
 	for (var s = 1; s < arguments.length; s++) {
 		from = arguments[s];
-		keys = Object.keys(Object(from));
+		keys = ownEnumerableKeys(Object(from));
 
 		for (var i = 0; i < keys.length; i++) {
 			to[keys[i]] = from[keys[i]];
@@ -3205,21 +3210,47 @@ exports.stringify = function (obj) {
 
 },{}],46:[function(require,module,exports){
 'use strict';
-module.exports = function (obj, compareFn) {
-	if (typeof obj !== 'object') {
+var isObj = require('is-obj');
+
+module.exports = function (obj, opts) {
+	if (!isObj(obj)) {
 		throw new TypeError('Expected an object');
 	}
 
-	var ret = {};
+	opts = opts || {};
 
-	Object.keys(obj).sort(compareFn).forEach(function (el) {
-		ret[el] = obj[el];
-	});
+	// DEPRECATED
+	if (typeof opts === 'function') {
+		opts = {compare: opts};
+	}
 
-	return ret;
+	var deep = opts.deep;
+
+	var sortKeys = function (x) {
+		var ret = {};
+		var keys = Object.keys(x).sort(opts.compare);
+
+		for (var i = 0; i < keys.length; i++) {
+			var key = keys[i];
+			var val = x[key];
+
+			ret[key] = deep && val !== x && isObj(val) ? sortKeys(val) : val;
+		}
+
+		return ret;
+	};
+
+	return sortKeys(obj);
 };
 
-},{}],47:[function(require,module,exports){
+},{"is-obj":47}],47:[function(require,module,exports){
+'use strict';
+module.exports = function (x) {
+	var type = typeof x;
+	return x !== null && (type === 'object' || type === 'function');
+};
+
+},{}],48:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3237,7 +3268,7 @@ _defaults(exports, _interopRequireWildcard(_requestInterceptor));
 var _responseInterceptor = require('./responseInterceptor');
 
 _defaults(exports, _interopRequireWildcard(_responseInterceptor));
-},{"./requestInterceptor":48,"./responseInterceptor":49}],48:[function(require,module,exports){
+},{"./requestInterceptor":49,"./responseInterceptor":50}],49:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3265,7 +3296,7 @@ var RequestInterceptor = (function () {
 })();
 
 exports.RequestInterceptor = RequestInterceptor;
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3293,7 +3324,7 @@ var ResponseInterceptor = (function () {
 })();
 
 exports.ResponseInterceptor = ResponseInterceptor;
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3315,7 +3346,8 @@ _defaults(exports, _interopRequireWildcard(_restClient));
 var _coreBaseInterceptors = require('./core/baseInterceptors');
 
 _defaults(exports, _interopRequireWildcard(_coreBaseInterceptors));
-},{"./core/baseInterceptors":47,"./restClient/":53,"./restClient/config":51}],51:[function(require,module,exports){
+},{"./core/baseInterceptors":48,"./restClient/":54,"./restClient/config":52}],52:[function(require,module,exports){
+(function (global){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3328,11 +3360,34 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _utils = require('./utils');
 
+function getLocalPromise() {
+  var local = undefined;
+
+  if (typeof global !== 'undefined') {
+    local = global;
+  } else if (typeof self !== 'undefined') {
+    local = self;
+  } else {
+    try {
+      local = Function('return this')();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  var P = local.Promise;
+  if (!(0, _utils.isPromise)(P)) {
+    return null;
+  }
+
+  return P;
+}
+
 var Config = (function () {
   function Config() {
     _classCallCheck(this, Config);
 
-    this._promise = Promise;
+    this._promise = getLocalPromise();
   }
 
   _createClass(Config, [{
@@ -3345,6 +3400,9 @@ var Config = (function () {
       }
     },
     get: function () {
+      if (!(0, _utils.isPromise)(this._promise)) {
+        throw new Error('No promise exist');
+      }
       return this._promise;
     }
   }]);
@@ -3354,7 +3412,8 @@ var Config = (function () {
 
 var config = new Config();
 exports.config = config;
-},{"./utils":58}],52:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./utils":59}],53:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3405,7 +3464,7 @@ var Http = (function () {
 })();
 
 exports.Http = Http;
-},{"./config":51,"./utils":58,"superagent-interface-promise":59}],53:[function(require,module,exports){
+},{"./config":52,"./utils":59,"superagent-interface-promise":60}],54:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3435,7 +3494,7 @@ _defaults(exports, _interopRequireWildcard(_restResource));
 var _config = require('./config');
 
 _defaults(exports, _interopRequireWildcard(_config));
-},{"./config":51,"./request":54,"./response":55,"./restClient":56,"./restResource":57}],54:[function(require,module,exports){
+},{"./config":52,"./request":55,"./response":56,"./restClient":57,"./restResource":58}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3650,7 +3709,7 @@ var Request = (function () {
 })();
 
 exports.Request = Request;
-},{"../core/baseInterceptors/":47,"./config":51,"./response":55,"./utils":58}],55:[function(require,module,exports){
+},{"../core/baseInterceptors/":48,"./config":52,"./response":56,"./utils":59}],56:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3687,7 +3746,7 @@ var Response = (function () {
 })();
 
 exports.Response = Response;
-},{"lodash/lang/isObject":34}],56:[function(require,module,exports){
+},{"lodash/lang/isObject":35}],57:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3778,7 +3837,7 @@ var RestClient = (function () {
 })();
 
 exports.RestClient = RestClient;
-},{"./http":52,"./restResource":57,"lodash/object/assign":35}],57:[function(require,module,exports){
+},{"./http":53,"./restResource":58,"lodash/object/assign":36}],58:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3903,7 +3962,7 @@ var RestResource = (function () {
 })();
 
 exports.RestResource = RestResource;
-},{"./http":52,"./request":54,"lodash/lang/isObject":34,"uri-template":63}],58:[function(require,module,exports){
+},{"./http":53,"./request":55,"lodash/lang/isObject":35,"uri-template":64}],59:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -3956,9 +4015,9 @@ function normalizeUrl(url) {
  */
 
 function isPromise(obj) {
-  return 'function' == typeof obj.all;
+  return obj && 'function' == typeof obj.all;
 }
-},{"normalize-url":42}],59:[function(require,module,exports){
+},{"normalize-url":42}],60:[function(require,module,exports){
 // So you can `var request = require("superagent-es6-promise")`
 var superagent = module.exports = require("superagent");
 superagent.Promise = Promise;
@@ -4025,7 +4084,7 @@ Request.prototype.then = function() {
   return promise.then.apply(promise, arguments);
 };
 
-},{"superagent":60}],60:[function(require,module,exports){
+},{"superagent":61}],61:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -5150,7 +5209,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":61,"reduce":62}],61:[function(require,module,exports){
+},{"emitter":62,"reduce":63}],62:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -5316,7 +5375,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -5341,7 +5400,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],63:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 module.exports = (function(){
   /*
    * Generated by PEG.js 0.7.0.
@@ -6068,7 +6127,7 @@ module.exports = (function(){
   return result;
 })();
 
-},{"./lib/classes":64}],64:[function(require,module,exports){
+},{"./lib/classes":65}],65:[function(require,module,exports){
 // Generated by CoffeeScript 1.6.3
 (function() {
   var FormContinuationExpression, FormStartExpression, FragmentExpression, LabelExpression, NamedExpression, PathParamExpression, PathSegmentExpression, ReservedExpression, SimpleExpression, Template, encoders, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
@@ -6487,7 +6546,7 @@ module.exports = (function(){
 
 }).call(this);
 
-},{"./encoders":65}],65:[function(require,module,exports){
+},{"./encoders":66}],66:[function(require,module,exports){
 // Generated by CoffeeScript 1.6.3
 (function() {
   var pctEncode;
@@ -6500,7 +6559,7 @@ module.exports = (function(){
 
 }).call(this);
 
-},{"pct-encode":66}],66:[function(require,module,exports){
+},{"pct-encode":67}],67:[function(require,module,exports){
 module.exports = function pctEncode(regexp) {
   regexp = regexp || /\W/g;
   return function encode(string) {
@@ -6525,16 +6584,21 @@ module.exports = function pctEncode(regexp) {
   }
 }
 
-},{}],67:[function(require,module,exports){
-(function (__filename){
+},{}],68:[function(require,module,exports){
+(function (global,__filename){
 /*
- Yaku v0.2.1
+ Yaku v0.2.9
  (c) 2015 Yad Smood. http://ysmood.org
  License MIT
 */
-(function(root) {
+(function() {
   var Yaku;
   return Yaku = (function() {
+    'use strict';
+    var $circularChain, $fromPrevious, $invalid_argument, $nil, $noop, $pending, $promiseTrace, $rejected, $resolved, $settlerTrace, $tryCatchFn, $tryErr, addHandler, assertIterable, callHanler, genScheduler, genSettler, genStackInfo, genTraceInfo, genTryCatcher, genTypeError, getThen, isFunction, isLongStackTrace, isObject, newEmptyYaku, release, root, scheduleHandler, scheduleUnhandledRejection, settlePromise, settleWithX, settleXthen, tryCatcher;
+
+    root = typeof global === 'object' ? global : window;
+
 
     /**
     	 * This class follows the [Promises/A+](https://promisesaplus.com) and
@@ -6554,7 +6618,6 @@ module.exports = function pctEncode(regexp) {
     	 * 			reject 'no'
     	 * ```
      */
-    var $circularChain, $invalid_argument, $noop, $pending, $promiseTrace, $rejected, $resolved, $settlerTrace, $tryCatchFn, $tryErr, addHandler, assertIterable, callHanler, genScheduler, genSettler, genTraceInfo, genTryCatcher, genTypeError, getThen, isFunction, isLongStackTrace, isObject, newEmptyYaku, release, scheduleHandler, scheduleUnhandledRejection, settlePromise, settleWithX, settleXthen, tryCatcher;
 
     function Yaku(executor) {
       var err;
@@ -6610,7 +6673,7 @@ module.exports = function pctEncode(regexp) {
      */
 
     Yaku.prototype["catch"] = function(onRejected) {
-      return this.then(void 0, onRejected);
+      return this.then($nil, onRejected);
     };
 
 
@@ -6763,26 +6826,12 @@ module.exports = function pctEncode(regexp) {
      */
 
     Yaku.onUnhandledRejection = function(reason, p) {
-      var stackInfo, stackStr;
+      var info;
       if (!isObject(console)) {
         return;
       }
-      stackInfo = [(reason ? reason.stack ? reason.stack.trim() : reason : reason)];
-      if (isLongStackTrace && p[$promiseTrace]) {
-        if (p[$settlerTrace]) {
-          stackInfo.push(p[$settlerTrace].trim());
-        }
-        while (p) {
-          stackInfo.push(p[$promiseTrace].trim());
-          p = p._pre;
-        }
-      }
-      stackStr = stackInfo.join('\n');
-      if (typeof __filename === 'string') {
-        stackStr = stackStr.replace(RegExp(".+" + __filename + ".+\\n?", "g"), '');
-      }
-      console.error('Unhandled Rejection:', stackStr);
-      return stackInfo;
+      info = genStackInfo(reason, p);
+      return console.error('Unhandled Rejection:', info[0], info[1]);
     };
 
     isLongStackTrace = false;
@@ -6791,6 +6840,9 @@ module.exports = function pctEncode(regexp) {
     /**
     	 * It is used to enable the long stack trace.
     	 * Once it is enabled, it can't be reverted.
+    	 * While it is very helpful in development and testing environments,
+    	 * it is not recommended to use it in production. It will slow down your
+    	 * application and waste your memory.
     	 * @example
     	 * ```coffee
     	 * Promise = require 'yaku'
@@ -6816,6 +6868,8 @@ module.exports = function pctEncode(regexp) {
 
     $noop = {};
 
+    $nil = void 0;
+
     isObject = function(obj) {
       return typeof obj === 'object';
     };
@@ -6833,7 +6887,7 @@ module.exports = function pctEncode(regexp) {
      */
 
     release = function(obj, key) {
-      obj[key] = void 0;
+      obj[key] = $nil;
     };
 
 
@@ -6978,7 +7032,7 @@ module.exports = function pctEncode(regexp) {
     };
 
     genTraceInfo = function(noTitle) {
-      return (new Error).stack.replace('Error', (noTitle ? '' : 'From previous event:'));
+      return (new Error).stack.replace('Error', (noTitle ? '' : $fromPrevious));
     };
 
 
@@ -7000,6 +7054,8 @@ module.exports = function pctEncode(regexp) {
     $circularChain = 'promise_circular_chain';
 
     $invalid_argument = 'invalid_argument';
+
+    $fromPrevious = 'From previous event:';
 
     Yaku.prototype._state = $pending;
 
@@ -7039,7 +7095,11 @@ module.exports = function pctEncode(regexp) {
         if (isLongStackTrace) {
           self[$settlerTrace] = genTraceInfo(true);
         }
-        return settlePromise(self, state, value);
+        if (state === $resolved) {
+          settleWithX(self, value);
+        } else {
+          settlePromise(self, state, value);
+        }
       };
     };
 
@@ -7061,9 +7121,8 @@ module.exports = function pctEncode(regexp) {
         p2._onRejected = onRejected;
       }
       p2._pre = p1;
-      if (p1._state === $pending) {
-        p1[p1._pCount++] = p2;
-      } else {
+      p1[p1._pCount++] = p2;
+      if (p1._state !== $pending) {
         scheduleHandler(p1, p2);
       }
       return p2;
@@ -7080,7 +7139,7 @@ module.exports = function pctEncode(regexp) {
     scheduleHandler = genScheduler(1000, function(p1, p2) {
       var handler, x;
       handler = p1._state ? p2._onFulfilled : p2._onRejected;
-      if (handler === void 0) {
+      if (handler === $nil) {
         settlePromise(p2, p1._state, p1._value);
         return;
       }
@@ -7113,6 +7172,42 @@ module.exports = function pctEncode(regexp) {
       }
     });
 
+    genStackInfo = function(reason, p) {
+      var clean, iter, push, stackInfo, stackStr, trim;
+      stackInfo = [];
+      trim = function(str) {
+        return str.replace(/^\s+|\s+$/g, '');
+      };
+      if (isLongStackTrace && p[$promiseTrace]) {
+        push = function(trace) {
+          return stackInfo.push(trim(trace));
+        };
+        if (p[$settlerTrace]) {
+          push(p[$settlerTrace]);
+        }
+        iter = function(node) {
+          if (!node) {
+            return;
+          }
+          iter(node._next);
+          push(node[$promiseTrace]);
+          return iter(node._pre);
+        };
+        iter(p);
+      }
+      stackStr = '\n' + stackInfo.join('\n');
+      clean = function(stack, cleanPrev) {
+        var i;
+        if (cleanPrev && (i = stack.indexOf('\n' + $fromPrevious)) > 0) {
+          stack = stack.slice(0, i);
+        }
+        if (typeof __filename === 'string') {
+          return stack.replace(RegExp(".+" + __filename + ".+\\n?", "g"), '');
+        }
+      };
+      return [(reason ? reason.stack ? clean(trim(reason.stack), true) : reason : reason), clean(stackStr)];
+    };
+
     callHanler = function(handler, value) {
       return handler(value);
     };
@@ -7127,14 +7222,23 @@ module.exports = function pctEncode(regexp) {
      */
 
     settlePromise = function(p, state, value) {
-      var i, len;
+      var i, len, stack;
       if (p._state !== $pending) {
         return;
       }
       p._state = state;
       p._value = value;
-      if (state === $rejected && (!p._pre || p._pre._state === $resolved)) {
-        scheduleUnhandledRejection(p);
+      if (state === $rejected) {
+        if (isLongStackTrace && value && value.stack) {
+          stack = genStackInfo(value, p);
+          value.stack = stack[0] + stack[1];
+        }
+        if (!p._pre || p._pre._state === $resolved) {
+          scheduleUnhandledRejection(p);
+        }
+      }
+      if (!isLongStackTrace) {
+        p._pre = $nil;
       }
       i = 0;
       len = p._pCount;
@@ -7165,9 +7269,8 @@ module.exports = function pctEncode(regexp) {
           return;
         }
         if (isFunction(xthen)) {
-          if (x instanceof Yaku) {
-            x._pre = p._pre;
-            p._pre = x;
+          if (isLongStackTrace && x instanceof Yaku) {
+            p._next = x;
           }
           settleXthen(p, x, xthen);
         } else {
@@ -7236,10 +7339,10 @@ module.exports = function pctEncode(regexp) {
     return Yaku;
 
   })();
-})(this || window);
+})();
 
-}).call(this,"/node_modules/yaku/dist/yaku.js")
-},{}],68:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},"/node_modules/yaku/lib/yaku.js")
+},{}],69:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7248,7 +7351,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -7261,8 +7364,10 @@ var _populate = require('./populate');
 var _interceptors = require('../interceptors/');
 
 var HalRequest = (function (_Request) {
+  _inherits(HalRequest, _Request);
+
   function HalRequest(baseUrl, resourceName, restResource) {
-    var config = arguments[3] === undefined ? {} : arguments[3];
+    var config = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
     _classCallCheck(this, HalRequest);
 
@@ -7277,18 +7382,12 @@ var HalRequest = (function (_Request) {
     this._interceptors = interceptors.concat(this._interceptors);
   }
 
-  _inherits(HalRequest, _Request);
-
   _createClass(HalRequest, [{
     key: 'populate',
     value: function populate() {
       var _populates;
 
-      for (var _len = arguments.length, rel = Array(_len), _key = 0; _key < _len; _key++) {
-        rel[_key] = arguments[_key];
-      }
-
-      (_populates = this._populates).push.apply(_populates, rel);
+      (_populates = this._populates).push.apply(_populates, arguments);
       return this;
     }
   }, {
@@ -7314,7 +7413,7 @@ var HalRequest = (function (_Request) {
             var r = _this.restResource._createSubInstance(url, rel);
             (function (request) {
               var value = undefined;
-              Object.defineProperty(obj, '' + rel + 'Async', {
+              Object.defineProperty(obj, rel + 'Async', {
                 enumerable: false,
                 get: function get() {
                   if (value !== undefined) {
@@ -7336,7 +7435,7 @@ var HalRequest = (function (_Request) {
     }
   }, {
     key: 'populates',
-    get: function () {
+    get: function get() {
       return new _populate.Populate(this._populates);
     }
   }]);
@@ -7346,7 +7445,7 @@ var HalRequest = (function (_Request) {
 
 exports.HalRequest = HalRequest;
 
-},{"../interceptors/":76,"./populate":72,"vador":50}],69:[function(require,module,exports){
+},{"../interceptors/":77,"./populate":73,"vador":51}],70:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7355,7 +7454,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -7372,15 +7471,13 @@ var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 var _halRequest = require('./halRequest');
 
 var HalResource = (function (_RestResource) {
+  _inherits(HalResource, _RestResource);
+
   function HalResource() {
     _classCallCheck(this, HalResource);
 
-    if (_RestResource != null) {
-      _RestResource.apply(this, arguments);
-    }
+    _get(Object.getPrototypeOf(HalResource.prototype), 'constructor', this).apply(this, arguments);
   }
-
-  _inherits(HalResource, _RestResource);
 
   _createClass(HalResource, [{
     key: '_createSubInstance',
@@ -7390,9 +7487,9 @@ var HalResource = (function (_RestResource) {
   }, {
     key: 'constructBaseRequest',
     value: function constructBaseRequest() {
-      var method = arguments[0] === undefined ? 'get' : arguments[0];
-      var responseType = arguments[1] === undefined ? Array : arguments[1];
-      var addUrl = arguments[2] === undefined ? '' : arguments[2];
+      var method = arguments.length <= 0 || arguments[0] === undefined ? 'get' : arguments[0];
+      var responseType = arguments.length <= 1 || arguments[1] === undefined ? Array : arguments[1];
+      var addUrl = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
 
       var request = new _halRequest.HalRequest(this._baseUrl, this.resourceName, this, this._config);
       request.responseType = responseType;
@@ -7440,7 +7537,7 @@ var HalResource = (function (_RestResource) {
 
       if (value.id) {
         // remove duplicate slashes
-        return ('' + href + '/' + value.id).replace(/\/{2,}/, '/');
+        return (href + '/' + value.id).replace(/\/{2,}/, '/');
       } else {
         throw new Error('For relation ' + rel + ', the value must have id');
       }
@@ -7473,7 +7570,7 @@ var HalResource = (function (_RestResource) {
 
 exports.HalResource = HalResource;
 
-},{"./halRequest":68,"lodash/object/assign":35,"vador":50}],70:[function(require,module,exports){
+},{"./halRequest":69,"lodash/object/assign":36,"vador":51}],71:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7481,6 +7578,8 @@ Object.defineProperty(exports, '__esModule', {
 });
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -7497,15 +7596,13 @@ var _lodashObjectAssign = require('lodash/object/assign');
 var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 
 var HalRestClient = (function (_RestClient) {
+  _inherits(HalRestClient, _RestClient);
+
   function HalRestClient() {
     _classCallCheck(this, HalRestClient);
 
-    if (_RestClient != null) {
-      _RestClient.apply(this, arguments);
-    }
+    _get(Object.getPrototypeOf(HalRestClient.prototype), 'constructor', this).apply(this, arguments);
   }
-
-  _inherits(HalRestClient, _RestClient);
 
   _createClass(HalRestClient, [{
     key: 'instanciateResource',
@@ -7519,7 +7616,7 @@ var HalRestClient = (function (_RestClient) {
 
 exports.HalRestClient = HalRestClient;
 
-},{"./halResource":69,"lodash/object/assign":35,"vador":50}],71:[function(require,module,exports){
+},{"./halResource":70,"lodash/object/assign":36,"vador":51}],72:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7542,7 +7639,7 @@ var _halRequest = require('./halRequest');
 
 _defaults(exports, _interopRequireWildcard(_halRequest));
 
-},{"./halRequest":68,"./halResource":69,"./halRestClient":70}],72:[function(require,module,exports){
+},{"./halRequest":69,"./halResource":70,"./halRestClient":71}],73:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7567,7 +7664,7 @@ var Populate = (function () {
   function Populate() {
     var _this = this;
 
-    var populates = arguments[0] === undefined ? [] : arguments[0];
+    var populates = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
 
     _classCallCheck(this, Populate);
 
@@ -7623,7 +7720,7 @@ var Populate = (function () {
     }
   }, {
     key: 'populates',
-    get: function () {
+    get: function get() {
       return this._populates;
     }
   }]);
@@ -7633,10 +7730,10 @@ var Populate = (function () {
 
 exports.Populate = Populate;
 
-},{"lodash/lang/isObject":34,"lodash/object/set":39}],73:[function(require,module,exports){
+},{"lodash/lang/isObject":35,"lodash/object/set":40}],74:[function(require,module,exports){
 "use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),u=0;u<t.length;u++){var i=t[u],o=Object.getOwnPropertyDescriptor(r,i);o&&o.configurable&&void 0===e[i]&&Object.defineProperty(e,i,o)}return e}function _interopRequireDefault(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(exports,"__esModule",{value:!0});var _vador=require("vador"),_debug=require("debug"),_debug2=_interopRequireDefault(_debug);_vador.config.Promise=require("yaku"),exports.config=_vador.config;var _halRestClient=require("./halRestClient/");_defaults(exports,_interopRequireWildcard(_halRestClient));var _interceptors=require("./interceptors");_defaults(exports,_interopRequireWildcard(_interceptors));var debug=_debug2["default"];exports.debug=debug;
 
-},{"./halRestClient/":71,"./interceptors":76,"debug":6,"vador":50,"yaku":67}],74:[function(require,module,exports){
+},{"./halRestClient/":72,"./interceptors":77,"debug":6,"vador":51,"yaku":68}],75:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7645,7 +7742,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -7672,14 +7769,14 @@ var debug = new _debug2['default']('halClient [Interceptor]');
 var EMBEDDED = '_embedded';
 
 var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
+  _inherits(EmbeddedExtractorInterceptor, _ResponseInterceptor);
+
   function EmbeddedExtractorInterceptor(tagEmbedded) {
     _classCallCheck(this, EmbeddedExtractorInterceptor);
 
     _get(Object.getPrototypeOf(EmbeddedExtractorInterceptor.prototype), 'constructor', this).call(this);
     this.tagEmbedded = tagEmbedded || EMBEDDED;
   }
-
-  _inherits(EmbeddedExtractorInterceptor, _ResponseInterceptor);
 
   _createClass(EmbeddedExtractorInterceptor, [{
     key: 'response',
@@ -7770,7 +7867,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],75:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":35,"lodash/object/has":37,"vador":51}],76:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7778,6 +7875,8 @@ Object.defineProperty(exports, '__esModule', {
 });
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -7796,15 +7895,13 @@ var debug = new _debug2['default']('halClient [Interceptor]');
 var REGEX_LASTPART = /\/([^/{]*)({[^/{]*})?\/?$/;
 
 var IdExtractorInterceptor = (function (_ResponseInterceptor) {
+  _inherits(IdExtractorInterceptor, _ResponseInterceptor);
+
   function IdExtractorInterceptor() {
     _classCallCheck(this, IdExtractorInterceptor);
 
-    if (_ResponseInterceptor != null) {
-      _ResponseInterceptor.apply(this, arguments);
-    }
+    _get(Object.getPrototypeOf(IdExtractorInterceptor.prototype), 'constructor', this).apply(this, arguments);
   }
-
-  _inherits(IdExtractorInterceptor, _ResponseInterceptor);
 
   _createClass(IdExtractorInterceptor, [{
     key: 'response',
@@ -7856,7 +7953,7 @@ var IdExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.IdExtractorInterceptor = IdExtractorInterceptor;
 
-},{"debug":6,"vador":50}],76:[function(require,module,exports){
+},{"debug":6,"vador":51}],77:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7887,7 +7984,7 @@ var _paginationExtractorInterceptor = require('./paginationExtractorInterceptor'
 
 _defaults(exports, _interopRequireWildcard(_paginationExtractorInterceptor));
 
-},{"./embeddedExtractorInterceptor":74,"./idExtractorInterceptor":75,"./linkExtractorInterceptor":77,"./paginationExtractorInterceptor":78,"./populateInterceptor":79}],77:[function(require,module,exports){
+},{"./embeddedExtractorInterceptor":75,"./idExtractorInterceptor":76,"./linkExtractorInterceptor":78,"./paginationExtractorInterceptor":79,"./populateInterceptor":80}],78:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7896,7 +7993,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -7925,6 +8022,8 @@ var TAG_HREF = 'href';
 var TAG_SELF = 'self';
 
 var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
+  _inherits(LinkExtractorInterceptor, _ResponseInterceptor);
+
   function LinkExtractorInterceptor(tagLink, tagHref, tagSelf) {
     _classCallCheck(this, LinkExtractorInterceptor);
 
@@ -7933,8 +8032,6 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
     this.tagHref = tagHref || TAG_HREF;
     this.tagSelf = tagSelf || TAG_SELF;
   }
-
-  _inherits(LinkExtractorInterceptor, _ResponseInterceptor);
 
   _createClass(LinkExtractorInterceptor, [{
     key: 'response',
@@ -8018,7 +8115,7 @@ var LinkExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.LinkExtractorInterceptor = LinkExtractorInterceptor;
 
-},{"debug":6,"lodash/lang/isObject":34,"lodash/object/has":36,"vador":50}],78:[function(require,module,exports){
+},{"debug":6,"lodash/lang/isObject":35,"lodash/object/has":37,"vador":51}],79:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -8027,7 +8124,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -8050,14 +8147,14 @@ var debug = new _debug2['default']('halClient [Interceptor]');
 var PAGE = 'page';
 
 var PaginationExtractorInterceptor = (function (_ResponseInterceptor) {
+  _inherits(PaginationExtractorInterceptor, _ResponseInterceptor);
+
   function PaginationExtractorInterceptor(tagPage) {
     _classCallCheck(this, PaginationExtractorInterceptor);
 
     _get(Object.getPrototypeOf(PaginationExtractorInterceptor.prototype), 'constructor', this).call(this);
     this.tagPage = tagPage || PAGE;
   }
-
-  _inherits(PaginationExtractorInterceptor, _ResponseInterceptor);
 
   _createClass(PaginationExtractorInterceptor, [{
     key: 'response',
@@ -8085,7 +8182,7 @@ var PaginationExtractorInterceptor = (function (_ResponseInterceptor) {
 
 exports.PaginationExtractorInterceptor = PaginationExtractorInterceptor;
 
-},{"debug":6,"lodash/object/has":36,"vador":50}],79:[function(require,module,exports){
+},{"debug":6,"lodash/object/has":37,"vador":51}],80:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -8093,6 +8190,8 @@ Object.defineProperty(exports, '__esModule', {
 });
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -8115,15 +8214,13 @@ var _debug2 = _interopRequireDefault(_debug);
 var debug = new _debug2['default']('halClient [Interceptor]');
 
 var PopulateInterceptor = (function (_ResponseInterceptor) {
+  _inherits(PopulateInterceptor, _ResponseInterceptor);
+
   function PopulateInterceptor() {
     _classCallCheck(this, PopulateInterceptor);
 
-    if (_ResponseInterceptor != null) {
-      _ResponseInterceptor.apply(this, arguments);
-    }
+    _get(Object.getPrototypeOf(PopulateInterceptor.prototype), 'constructor', this).apply(this, arguments);
   }
-
-  _inherits(PopulateInterceptor, _ResponseInterceptor);
 
   _createClass(PopulateInterceptor, [{
     key: 'response',
@@ -8195,5 +8292,5 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
 
 exports.PopulateInterceptor = PopulateInterceptor;
 
-},{"debug":6,"lodash/object/has":36,"vador":50}]},{},[73])(73)
+},{"debug":6,"lodash/object/has":37,"vador":51}]},{},[74])(74)
 });
