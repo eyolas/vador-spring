@@ -3392,14 +3392,14 @@ var Config = (function () {
 
   _createClass(Config, [{
     key: 'Promise',
-    set: function (promise) {
+    set: function set(promise) {
       if (!(0, _utils.isPromise)(promise)) {
         throw new Error('Promise must be a promise');
       } else {
         this._promise = promise;
       }
     },
-    get: function () {
+    get: function get() {
       if (!(0, _utils.isPromise)(this._promise)) {
         throw new Error('No promise exist');
       }
@@ -3515,7 +3515,7 @@ var _config = require('./config');
 
 var Request = (function () {
   function Request(baseUrl, resourceName, restResource) {
-    var config = arguments[3] === undefined ? {} : arguments[3];
+    var config = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
     _classCallCheck(this, Request);
 
@@ -3540,7 +3540,7 @@ var Request = (function () {
   _createClass(Request, [{
     key: 'addInterceptor',
     value: function addInterceptor(interceptor) {
-      var onEnd = arguments[1] === undefined ? true : arguments[1];
+      var onEnd = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 
       if (onEnd) {
         this._interceptors.push(interceptor);
@@ -3642,7 +3642,7 @@ var Request = (function () {
     value: function sendRequest() {
       var _this3 = this;
 
-      var withProxy = arguments[0] === undefined ? true : arguments[0];
+      var withProxy = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
 
       var _request = function _request(request) {
         return _this3._http.request(request).then(function (result) {
@@ -3697,10 +3697,10 @@ var Request = (function () {
     }
   }, {
     key: 'url',
-    set: function (url) {
+    set: function set(url) {
       this._url = (0, _utils.normalizeUrl)(url);
     },
-    get: function () {
+    get: function get() {
       return (0, _utils.normalizeUrl)(this._url);
     }
   }]);
@@ -3769,7 +3769,7 @@ var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 
 var RestClient = (function () {
   function RestClient(baseUrl) {
-    var config = arguments[1] === undefined ? {} : arguments[1];
+    var config = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
     _classCallCheck(this, RestClient);
 
@@ -3789,7 +3789,7 @@ var RestClient = (function () {
   }, {
     key: 'addInterceptor',
     value: function addInterceptor(interceptor) {
-      var onEnd = arguments[1] === undefined ? true : arguments[1];
+      var onEnd = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 
       if (onEnd) {
         this._interceptors.push(interceptor);
@@ -3805,7 +3805,7 @@ var RestClient = (function () {
   }, {
     key: 'resource',
     value: function resource(resourceName) {
-      var config = arguments[1] === undefined ? {} : arguments[1];
+      var config = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       if (!this._cache[resourceName]) {
         var conf = (0, _lodashObjectAssign2['default'])({}, this._config);
@@ -3823,12 +3823,12 @@ var RestClient = (function () {
     }
   }, {
     key: 'baseUrl',
-    set: function (baseUrl) {
+    set: function set(baseUrl) {
       this._baseUrl = baseUrl;
     }
   }, {
     key: 'http',
-    set: function (http) {
+    set: function set(http) {
       this._http = http;
     }
   }]);
@@ -3864,7 +3864,7 @@ var RestResource = (function () {
   function RestResource(baseUrl, resourceName) {
     var _this = this;
 
-    var config = arguments[2] === undefined ? {} : arguments[2];
+    var config = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
     _classCallCheck(this, RestResource);
 
@@ -3894,7 +3894,7 @@ var RestResource = (function () {
 
           _this[method] = (function (url, type) {
             return function () {
-              var obj = arguments[0] === undefined ? {} : arguments[0];
+              var obj = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
               var addUrl = url.expand(obj);
 
@@ -3909,9 +3909,9 @@ var RestResource = (function () {
   _createClass(RestResource, [{
     key: 'constructBaseRequest',
     value: function constructBaseRequest() {
-      var method = arguments[0] === undefined ? 'get' : arguments[0];
-      var responseType = arguments[1] === undefined ? Array : arguments[1];
-      var addUrl = arguments[2] === undefined ? '' : arguments[2];
+      var method = arguments.length <= 0 || arguments[0] === undefined ? 'get' : arguments[0];
+      var responseType = arguments.length <= 1 || arguments[1] === undefined ? Array : arguments[1];
+      var addUrl = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
 
       var request = new _request.Request(this._baseUrl, this.resourceName, this, this._config);
       request.responseType = responseType;
@@ -4018,9 +4018,35 @@ function isPromise(obj) {
   return obj && 'function' == typeof obj.all;
 }
 },{"normalize-url":42}],60:[function(require,module,exports){
+(function (global){
 // So you can `var request = require("superagent-es6-promise")`
 var superagent = module.exports = require("superagent");
-superagent.Promise = Promise;
+
+function getLocalPromise() {
+  var local;
+
+  if (typeof global !== 'undefined') {
+    local = global;
+  } else if (typeof self !== 'undefined') {
+    local = self;
+  } else {
+    try {
+      local = Function('return this')();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  var P = local.Promise;
+  if (!isPromise(P)) {
+    return null;
+  }
+
+  return P;
+}
+
+
+superagent.Promise = getLocalPromise();
 var Request = superagent.Request;
 
 // Create custom error type.
@@ -4032,6 +4058,11 @@ var SuperagentPromiseError = superagent.SuperagentPromiseError = function (messa
 
 SuperagentPromiseError.prototype = new Error();
 SuperagentPromiseError.prototype.constructor = SuperagentPromiseError;
+
+
+function isPromise(obj) {
+  return obj && 'function' == typeof obj.all;
+}
 
 /**
  * @namespace utils
@@ -4048,6 +4079,10 @@ SuperagentPromiseError.prototype.constructor = SuperagentPromiseError;
  * @return {Promise}
  */
 Request.prototype.promise = function() {
+  if (!isPromise(superagent.Promise)) {
+    throw new Error('Promise no exist');
+  }
+
   var req = this;
   var error;
 
@@ -4084,6 +4119,7 @@ Request.prototype.then = function() {
   return promise.then.apply(promise, arguments);
 };
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"superagent":61}],61:[function(require,module,exports){
 /**
  * Module dependencies.
