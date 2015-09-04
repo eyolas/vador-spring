@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eyolas/vader-spring.git"
+    "url": "git+https://github.com/vader-httpclient/vader-spring.git"
   },
   "keywords": [
     "sprind-data-rest",
@@ -28,9 +28,9 @@
   "author": "David Touzet <dtouzet@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/eyolas/vader-spring/issues"
+    "url": "https://github.com/vader-httpclient/vader-spring/issues"
   },
-  "homepage": "https://github.com/eyolas/vader-spring#readme",
+  "homepage": "https://github.com/vader-httpclient/vader-spring#readme",
   "browser": {
     "./src/index.js": "./src/index-browser.js"
   },
