@@ -1,4 +1,4 @@
-import {Request} from 'vador';
+import {Request} from 'vader';
 import {Populate} from './populate';
 import {PaginationExtractorInterceptor, IdExtractorInterceptor, LinkExtractorInterceptor, EmbeddedExtractorInterceptor, PopulateInterceptor}
 from '../interceptors/';

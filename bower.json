@@ -1,8 +1,8 @@
 {
-  "name": "vador-spring",
-  "version": "1.3.3",
-  "main": "build/browser/vadorSpring.js",
-  "homepage": "https://github.com/eyolas/vador-spring",
+  "name": "vader-spring",
+  "version": "2.0.0",
+  "main": "build/browser/vaderSpring.js",
+  "homepage": "https://github.com/eyolas/vader-spring",
   "authors": [
     "David Touzet <dtouzet@gmail.com>"
   ],

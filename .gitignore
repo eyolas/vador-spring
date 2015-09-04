@@ -1,9 +1,7 @@
 # master only
 site
 .tmp
-test.js
-test2.js
-savetest.js
+build
 
 # common
 node_modules

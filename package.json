@@ -1,21 +1,21 @@
 {
-  "name": "vador-spring",
-  "version": "1.3.3",
+  "name": "vader-spring",
+  "version": "2.0.0",
   "description": "hal client for spring data rest with hateoas",
   "main": "build/node/index.js",
   "scripts": {
     "test": "mocha --recursive --compilers js:babel/register -R mocha-unfunk-reporter",
     "clean": "rm -rf build/* && mkdir  -p build/{node,browser}",
     "build:node": "babel -d build/node src/ && rm build/node/index-browser.js",
-    "build:browser": "browserify src/index.js --standalone vadorSpring -t babelify -t  [ envify --TYPE_BUILD noYaku ] -t [ uglifyify --ignore '**/{interceptors,halRestClient}/*']> build/browser/vadorSpring.js",
-    "build:browser:min": "browserify src/index.js -g uglifyify --standalone vadorSpring -t babelify -t  [ envify --TYPE_BUILD noYaku ] -t > build/browser/vadorSpring.min.js",
-    "build:yaku:browser": "browserify src/index.js --standalone vadorSpring -t babelify -t  [ envify --TYPE_BUILD yaku ] -t [ uglifyify --ignore '**/{interceptors,halRestClient}/*']> build/browser/vadorSpring.yaku.js",
-    "build:yaku:browser:min": "browserify src/index.js -g uglifyify --standalone vadorSpring -t babelify -t  [ envify --TYPE_BUILD yaku ] > build/browser/vadorSpring.yaku.min.js",
+    "build:browser": "browserify src/index.js --standalone vaderSpring -t babelify -t  [ envify --TYPE_BUILD noYaku ] -t [ uglifyify --ignore '**/{interceptors,halRestClient}/*']> build/browser/vaderSpring.js",
+    "build:browser:min": "browserify src/index.js -g uglifyify --standalone vaderSpring -t babelify -t  [ envify --TYPE_BUILD noYaku ] -t > build/browser/vaderSpring.min.js",
+    "build:yaku:browser": "browserify src/index.js --standalone vaderSpring -t babelify -t  [ envify --TYPE_BUILD yaku ] -t [ uglifyify --ignore '**/{interceptors,halRestClient}/*']> build/browser/vaderSpring.yaku.js",
+    "build:yaku:browser:min": "browserify src/index.js -g uglifyify --standalone vaderSpring -t babelify -t  [ envify --TYPE_BUILD yaku ] > build/browser/vaderSpring.yaku.min.js",
     "build": "npm run clean && npm run build:node && npm run build:browser && npm run build:browser:min && npm run build:yaku:browser && npm run build:yaku:browser:min"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eyolas/vador-spring.git"
+    "url": "git+https://github.com/vader-httpclient/vader-spring.git"
   },
   "keywords": [
     "sprind-data-rest",
@@ -28,9 +28,9 @@
   "author": "David Touzet <dtouzet@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/eyolas/vador-spring/issues"
+    "url": "https://github.com/vader-httpclient/vader-spring/issues"
   },
-  "homepage": "https://github.com/eyolas/vador-spring#readme",
+  "homepage": "https://github.com/vader-httpclient/vader-spring#readme",
   "browser": {
     "./src/index.js": "./src/index-browser.js"
   },
@@ -38,7 +38,7 @@
     "debug": "^2.2.0",
     "lodash": "^3.9.3",
     "normalize-url": "^1.2.1",
-    "vador": "^1.4.4",
+    "vader": "^2.0.0",
     "yaku": "^0.2.0"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import {RestClient} from 'vador';
+import {RestClient} from 'vader';
 import {HalResource} from './halResource';
 import assign from 'lodash/object/assign';
 
