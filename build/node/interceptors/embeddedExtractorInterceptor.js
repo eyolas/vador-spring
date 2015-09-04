@@ -12,9 +12,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var _vador = require('vador');
+var _vader = require('vader');
 
 var _lodashObjectHas = require('lodash/object/has');
 
@@ -67,7 +67,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
         var keys = Object.keys(obj);
         if (keys.length === 1) {
           if (keys[0] === this.tagEmbedded) {
-            throw new Error('an embedded can\'t have directly an embedded');
+            throw new Error("an embedded can't have directly an embedded");
           }
 
           //if is an array so set object to array (case findAll)
@@ -100,7 +100,7 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
               if ((0, _lodashLangIsObject2['default'])(val) && Object.keys(val).length === 1) {
                 k = Object.keys(val)[0];
                 if (k === _this.tagEmbedded) {
-                  throw new Error('an embedded can\'t have directly an embedded');
+                  throw new Error("an embedded can't have directly an embedded");
                 }
                 val = val[k];
               } else {
@@ -122,11 +122,11 @@ var EmbeddedExtractorInterceptor = (function (_ResponseInterceptor) {
   }, {
     key: 'responseError',
     value: function responseError(error) {
-      console.error('embedded extractor responseError', error);
+      console.error("embedded extractor responseError", error);
     }
   }]);
 
   return EmbeddedExtractorInterceptor;
-})(_vador.ResponseInterceptor);
+})(_vader.ResponseInterceptor);
 
 exports.EmbeddedExtractorInterceptor = EmbeddedExtractorInterceptor;

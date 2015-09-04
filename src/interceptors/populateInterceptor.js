@@ -1,4 +1,4 @@
-import {ResponseInterceptor} from 'vador';
+import {ResponseInterceptor} from 'vader';
 import has from 'lodash/object/has';
 import Debug from 'debug';
 

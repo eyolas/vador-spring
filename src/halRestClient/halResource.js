@@ -1,4 +1,4 @@
-import {RestResource} from 'vador';
+import {RestResource} from 'vader';
 import assign from 'lodash/object/assign';
 import {HalRequest} from './halRequest';
 
