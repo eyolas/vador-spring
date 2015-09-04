@@ -1,4 +1,4 @@
-import {config} from 'vador';
+import {config} from 'vader';
 
 if (process.env.TYPE_BUILD === "yaku") {
   config.Promise = require('yaku');

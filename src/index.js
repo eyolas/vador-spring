@@ -1,3 +1,3 @@
-export {config} from 'vador';
+export {config} from 'vader';
 export * from './halRestClient/';
 export * from './interceptors';
