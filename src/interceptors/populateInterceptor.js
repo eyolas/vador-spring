@@ -1,4 +1,4 @@
-import {ResponseInterceptor} from 'vader';
+import {ResponseInterceptor, config} from 'vader';
 import has from 'lodash/object/has';
 import Debug from 'debug';
 
@@ -23,7 +23,7 @@ export class PopulateInterceptor extends ResponseInterceptor {
       promises.push(this._populateOne(value, request));
     }
 
-    return Promise
+    return config.Promise
       .all(promises)
       .then(() => {
         debug('populate interceptor end');
@@ -59,7 +59,7 @@ export class PopulateInterceptor extends ResponseInterceptor {
         }
       });
 
-    return Promise
+    return config.Promise
       .all(promises)
       .then(() => {
         return object;

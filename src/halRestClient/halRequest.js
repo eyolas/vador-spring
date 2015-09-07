@@ -1,4 +1,4 @@
-import {Request} from 'vader';
+import {Request, config as vaderConfig} from 'vader';
 import {Populate} from './populate';
 import {PaginationExtractorInterceptor, IdExtractorInterceptor, LinkExtractorInterceptor, EmbeddedExtractorInterceptor, PopulateInterceptor}
 from '../interceptors/';
@@ -56,14 +56,14 @@ export class HalRequest extends Request {
                   enumerable:false,
                   get: function() {
                     if (value !== undefined) {
-                      return Promise.resolve(value);
+                      return vaderConfig.Promise.resolve(value);
                     } else {
                       return request
                         .findAll()
                         .sendRequest()
                         .then(res => {
                           value = res.value;
-                          return Promise.resolve(value);
+                          return vaderConfig.Promise.resolve(value);
                         });
                     }
                   }
