@@ -1,5 +1,5 @@
-[![Build Status](https://img.shields.io/travis/eyolas/vador-spring/master.svg?style=flat-square)](https://travis-ci.org/eyolas/vador-spring)
-# vador-spring
+[![Build Status](https://img.shields.io/travis/vader-httpclient/vader-spring/master.svg?style=flat-square)](https://travis-ci.org/vader-httpclient/vader-spring)
+# vader-spring
 
 
 @todo doc & tests

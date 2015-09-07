@@ -72,11 +72,11 @@ var HalRequest = (function (_Request) {
                 enumerable: false,
                 get: function get() {
                   if (value !== undefined) {
-                    return Promise.resolve(value);
+                    return _vader.config.Promise.resolve(value);
                   } else {
                     return request.findAll().sendRequest().then(function (res) {
                       value = res.value;
-                      return Promise.resolve(value);
+                      return _vader.config.Promise.resolve(value);
                     });
                   }
                 }
