@@ -7489,11 +7489,11 @@ var HalRequest = (function (_Request) {
                 enumerable: false,
                 get: function get() {
                   if (value !== undefined) {
-                    return Promise.resolve(value);
+                    return _vader.config.Promise.resolve(value);
                   } else {
                     return request.findAll().sendRequest().then(function (res) {
                       value = res.value;
-                      return Promise.resolve(value);
+                      return _vader.config.Promise.resolve(value);
                     });
                   }
                 }
@@ -8317,7 +8317,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
         promises.push(this._populateOne(value, request));
       }
 
-      return Promise.all(promises).then(function () {
+      return _vader.config.Promise.all(promises).then(function () {
         debug('populate interceptor end');
         return _response;
       });
@@ -8350,7 +8350,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
         }
       });
 
-      return Promise.all(promises).then(function () {
+      return _vader.config.Promise.all(promises).then(function () {
         return object;
       });
     }

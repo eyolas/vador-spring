@@ -60,7 +60,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
         promises.push(this._populateOne(value, request));
       }
 
-      return Promise.all(promises).then(function () {
+      return _vader.config.Promise.all(promises).then(function () {
         debug('populate interceptor end');
         return _response;
       });
@@ -93,7 +93,7 @@ var PopulateInterceptor = (function (_ResponseInterceptor) {
         }
       });
 
-      return Promise.all(promises).then(function () {
+      return _vader.config.Promise.all(promises).then(function () {
         return object;
       });
     }
