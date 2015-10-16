@@ -1,6 +1,6 @@
 {
   "name": "vader-spring",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "hal client for spring data rest with hateoas",
   "main": "build/node/index.js",
   "scripts": {
