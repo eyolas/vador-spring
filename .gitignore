@@ -1,7 +1,6 @@
 # master only
 site
 .tmp
-build
 
 # common
 node_modules
