@@ -1,6 +1,6 @@
 {
   "name": "vader-spring",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "main": "build/browser/vaderSpring.js",
   "homepage": "https://github.com/eyolas/vader-spring",
   "authors": [
