@@ -1,5 +1,9 @@
 import {config} from 'vader';
 
+import * as vader from 'vader';
+export {vader};
+
+
 if (process.env.TYPE_BUILD === "yaku") {
   config.Promise = require('yaku');
 }
