@@ -5960,6 +5960,7 @@ var _responseInterceptor = require('./responseInterceptor');
 
 _defaults(exports, _interopExportWildcard(_responseInterceptor, _defaults));
 },{"./requestInterceptor":58,"./responseInterceptor":59}],58:[function(require,module,exports){
+/*eslint-disable */
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5988,6 +5989,7 @@ var RequestInterceptor = (function () {
 
 exports.RequestInterceptor = RequestInterceptor;
 },{}],59:[function(require,module,exports){
+/*eslint-disable */
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -6182,10 +6184,10 @@ var _restResource = require('./restResource');
 
 _defaults(exports, _interopExportWildcard(_restResource, _defaults));
 
-var _config = require('./config');
+var _http = require('./http');
 
-_defaults(exports, _interopExportWildcard(_config, _defaults));
-},{"./config":61,"./request":64,"./response":65,"./restClient":66,"./restResource":67}],64:[function(require,module,exports){
+_defaults(exports, _interopExportWildcard(_http, _defaults));
+},{"./http":62,"./request":64,"./response":65,"./restClient":66,"./restResource":67}],64:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6310,7 +6312,6 @@ var Request = (function () {
       var _this2 = this;
 
       var value = res.value;
-      var request = res.request;
 
       if (Array.isArray(value)) {
         var _ret = (function () {
@@ -6450,8 +6451,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _http = require('./http');
-
 var _restResource = require('./restResource');
 
 var _lodashObjectAssign = require('lodash/object/assign');
@@ -6528,7 +6527,7 @@ var RestClient = (function () {
 })();
 
 exports.RestClient = RestClient;
-},{"./http":62,"./restResource":67,"lodash/object/assign":32}],67:[function(require,module,exports){
+},{"./restResource":67,"lodash/object/assign":32}],67:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6566,7 +6565,7 @@ var RestResource = (function () {
     this._config.interceptors = config.interceptors || [];
     this._config.http = config.http || new _http.Http();
 
-    var config = this._config[resourceName] || {};
+    config = this._config[resourceName] || {};
 
     if ((0, _lodashLangIsObject2['default'])(config.methods)) {
       (function () {
